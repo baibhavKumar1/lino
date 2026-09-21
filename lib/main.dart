@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
+import 'screens/auth_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -15,22 +17,12 @@ class KichookApp extends StatelessWidget {
     return MaterialApp(
       title: 'Kichook',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF10B981),
-          primary: const Color(0xFF10B981),
-          secondary: const Color(0xFFF59E0B),
-          surface: const Color(0xFFF8FAFC),
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        textTheme: GoogleFonts.spaceGroteskTextTheme(
-          Theme.of(context).textTheme,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
+        '/auth': (context) => const AuthScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
         '/home': (context) => const HomeScreen(),
       },
     );

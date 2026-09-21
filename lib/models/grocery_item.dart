@@ -28,6 +28,7 @@ class GroceryItem {
   bool isAdded;
   bool isChecked;
   final Color accentColor;
+  final String? imagePath;
 
   GroceryItem({
     required this.id,
@@ -40,6 +41,7 @@ class GroceryItem {
     this.isAdded = false,
     this.isChecked = false,
     this.accentColor = const Color(0xFF10B981),
+    this.imagePath,
   });
 
   GroceryItem copyWith({
@@ -53,6 +55,7 @@ class GroceryItem {
     bool? isAdded,
     bool? isChecked,
     Color? accentColor,
+    String? imagePath,
   }) {
     return GroceryItem(
       id: id ?? this.id,
@@ -65,6 +68,7 @@ class GroceryItem {
       isAdded: isAdded ?? this.isAdded,
       isChecked: isChecked ?? this.isChecked,
       accentColor: accentColor ?? this.accentColor,
+      imagePath: imagePath ?? this.imagePath,
     );
   }
 }
@@ -116,10 +120,10 @@ class GroceryCatalog {
       // ==========================================
       // 1. RICE & SPECIALTY GRAINS (35 Items)
       // ==========================================
-      GroceryItem(id: 'r1', nameEn: 'Basmati Rice (Classic)', nameHi: 'Basmati Chawal', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0284C7)),
-      GroceryItem(id: 'r2', nameEn: '1121 XL Basmati Rice', nameHi: 'Extra Long Basmati', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0369A1)),
-      GroceryItem(id: 'r3', nameEn: 'Sona Masoori Rice', nameHi: 'Sona Masoori', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0284C7)),
-      GroceryItem(id: 'r4', nameEn: 'Wada Kolam Rice', nameHi: 'Kolam Chawal', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0D9488)),
+      GroceryItem(id: 'r1', nameEn: 'Basmati Rice (Classic)', nameHi: 'Basmati Chawal', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0284C7), imagePath: 'assets/images/rice.png'),
+      GroceryItem(id: 'r2', nameEn: '1121 XL Basmati Rice', nameHi: 'Extra Long Basmati', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0369A1), imagePath: 'assets/images/rice.png'),
+      GroceryItem(id: 'r3', nameEn: 'Sona Masoori Rice', nameHi: 'Sona Masoori', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0284C7), imagePath: 'assets/images/rice.png'),
+      GroceryItem(id: 'r4', nameEn: 'Wada Kolam Rice', nameHi: 'Kolam Chawal', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF0D9488), imagePath: 'assets/images/rice.png'),
       GroceryItem(id: 'r5', nameEn: 'Ponni Rice (Raw)', nameHi: 'Raw Ponni', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF059669)),
       GroceryItem(id: 'r6', nameEn: 'Ponni Rice (Parboiled)', nameHi: 'Ukda Chawal', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFF059669)),
       GroceryItem(id: 'r7', nameEn: 'Kerala Matta Rice', nameHi: 'Palakkadan Matta', category: ItemCategory.riceGrains, availableUnits: defaultGrainUnits, selectedUnit: '1 kg', accentColor: const Color(0xFFB91C1C)),

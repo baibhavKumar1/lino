@@ -1,1 +1,32 @@
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: false
+    strict-inference: false
+    strict-raw-types: false
+  errors:
+    unused_element: warning
+    unused_import: warning
+    unused_local_variable: warning
+    missing_required_param: error
+    missing_return: error
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_fields: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    prefer_iterable_whereType: true
+    unnecessary_brace_in_string_interps: true
+    unnecessary_const: true
+    unnecessary_new: true
+    unnecessary_null_aware_assignments: true
+    unnecessary_nullable_for_final_variable_declarations: true
+    unnecessary_string_interpolations: true
+    use_key_in_widget_constructors: false
+    avoid_unnecessary_containers: true
+    sized_box_for_whitespace: true

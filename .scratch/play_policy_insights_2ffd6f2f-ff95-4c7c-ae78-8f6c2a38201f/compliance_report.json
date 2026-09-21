@@ -1,0 +1,24 @@
+{
+    "data_safety_mismatches": [],
+    "findings": [],
+    "manual_review": [],
+    "metadata": {
+        "app_id": "kichook",
+        "overall_compliance": "Compliant",
+        "scan_date": "2026-08-19T00:33:04.533739"
+    },
+    "suggested_declaration": {
+        "collected_data": [
+            {
+                "data_type": "Photos",
+                "linked_to_user": false,
+                "purpose": "App functionality"
+            },
+            {
+                "data_type": "Purchase history",
+                "linked_to_user": false,
+                "purpose": "App functionality"
+            }
+        ]
+    }
+}

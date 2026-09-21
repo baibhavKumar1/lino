@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "509930811316",
+    "project_id": "kichook-730d1",
+    "storage_bucket": "kichook-730d1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509930811316:android:e101b1bb429614228e4ce1",
+        "android_client_info": {
+          "package_name": "com.wishop.kichook"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "509930811316-fp771bkgio75u49f01e5p9qq0rjs7o1e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wishop.kichook",
+            "certificate_hash": "1ae804d4cd0b97583f4d27dff6eb552a1b4ac2d2"
+          }
+        },
+        {
+          "client_id": "509930811316-69goh70gie4ddhqallpi9i634vs5505m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCU6bXuKyonq49zc65HmcuMEc0Hh7nEKbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "509930811316-69goh70gie4ddhqallpi9i634vs5505m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

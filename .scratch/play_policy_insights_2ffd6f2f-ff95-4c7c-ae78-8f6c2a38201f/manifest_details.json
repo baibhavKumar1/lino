@@ -1,0 +1,13 @@
+{
+    "app_dir": "C:\\playground\\kichook",
+    "app_label": "kichook",
+    "foreground_services": [],
+    "package_name": "kichook",
+    "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+    ],
+    "target_sdk": 35
+}

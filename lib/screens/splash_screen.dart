@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../widgets/animated_3d_mascot_widget.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,67 +16,50 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) {
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    // Increased duration slightly to enjoy 3D mascot shine & float animation
+    await Future.delayed(const Duration(milliseconds: 2800));
+    final loggedIn = await AuthService.isLoggedIn();
+    if (mounted) {
+      if (loggedIn) {
         Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/auth');
       }
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // KICHOOK Logo Container
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(20),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.shopping_basket_rounded,
-                        size: 64,
-                        color: Color(0xFF10B981),
-                      );
-                    },
-                  ),
-                ),
+              // 3D Animated List-Ribbon Mascot Widget with Shining Sweep & Sparkles
+              const Animated3DMascotWidget(
+                width: 220,
+                height: 240,
               )
                   .animate()
                   .scale(
-                    duration: 600.ms,
+                    duration: 700.ms,
                     curve: Curves.easeOutBack,
                   )
-                  .fadeIn(duration: 400.ms),
+                  .fadeIn(duration: 500.ms),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-              // Title: KICHOOK
+              // Title: KICHOOK in warm Fraunces
               Text(
                 'KICHOOK',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 28,
+                style: GoogleFonts.fraunces(
+                  fontSize: 32,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2.0,
                   color: const Color(0xFF0F172A),
@@ -83,29 +69,30 @@ class _SplashScreenState extends State<SplashScreen> {
                   .fadeIn(delay: 300.ms, duration: 500.ms)
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
-              // Subtitle tag
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+              Text(
+                'Smart Grocery Shopping, Simplified',
+                /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+                style: GoogleFonts.funnelDisplay(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF059669),
+                  letterSpacing: 0.3,
                 ),
-                child: Text(
-                  'KITCHEN LIST COMPANION',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 12, // Strictly >= 12px
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.5,
-                    color: const Color(0xFF059669),
-                  ),
+                */
+                style: const TextStyle(
+                  fontFamily: 'Funnel Display',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF059669),
+                  letterSpacing: 0.3,
                 ),
               )
                   .animate()
                   .fadeIn(delay: 500.ms, duration: 500.ms),
 
-              const SizedBox(height: 64),
+              const SizedBox(height: 40),
 
               // Loading indicator
               const SizedBox(

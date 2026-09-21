@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kichook — Brand Guidelines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Funnel+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: "Fraunces", Georgia, serif;
+      --font-sans: "Funnel Display", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+      --color-paper: #FFFFFF;
+      --color-mist: #FBF9F5;
+      --color-line: #E2E8F0;
+      --color-slate: #CBD5E1;
+      --color-graphite: #64748B;
+      --color-ink: #1E1E1E;
+      --color-mint: #00A86B;
+      --color-mint-light: #A7F3D0;
+      --color-mint-dark: #00754A;
+      --color-accent: #FF6B6B;
+      --color-accent-text: #E04848;
+      --gallery: #E2E8F0;
+
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--gallery);
+      color: var(--color-ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .book {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      padding: 36px 0;
+      zoom: var(--fit, 1);
+    }
+
+    .spread {
+      width: 1440px;
+      height: 900px;
+      flex: none;
+      background: var(--color-paper);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05), 0 16px 40px rgba(15, 23, 42, 0.08);
+      position: relative;
+    }
+
+    @media print {
+      html, body { background: #FFFFFF; }
+      .book { zoom: 1 !important; gap: 0; padding: 0; }
+      .spread { box-shadow: none; break-after: page; page-break-after: always; }
+      @page { size: 1440px 900px; margin: 0; }
+    }
+
+    /* Shared Chrome */
+    .rh {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 56px;
+      border-bottom: 1px solid var(--color-line);
+      flex: none;
+      background: var(--color-paper);
+    }
+    .ft {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 56px;
+      border-top: 1px solid var(--color-line);
+      flex: none;
+      background: var(--color-paper);
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* Common Typography & Primitives */
+    .mono {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-graphite);
+    }
+    .diamond {
+      width: 8px;
+      height: 8px;
+      background: var(--color-accent);
+      transform: rotate(45deg);
+      flex: none;
+    }
+    .diamond-mint {
+      width: 8px;
+      height: 8px;
+      background: var(--color-mint);
+      transform: rotate(45deg);
+      flex: none;
+    }
+    .title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+    }
+    .left-col {
+      width: 480px;
+      flex: none;
+      padding: 56px 48px 56px 56px;
+      border-right: 1px solid var(--color-line);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .right-col {
+      flex: 1;
+      padding: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: var(--color-mist);
+      position: relative;
+    }
+
+    /* Grids & Cards */
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--color-line);
+      background: var(--color-paper);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .grid-cell {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--color-line);
+      border-bottom: 1px solid var(--color-line);
+    }
+    .grid-cell:nth-child(2n) { border-right: none; }
+    .grid-cell:nth-child(3), .grid-cell:nth-child(4) { border-bottom: none; }
+
+    /* Swatches */
+    .swatch-card {
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .swatch-color {
+      height: 130px;
+      width: 100%;
+    }
+    .swatch-meta {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Character States */
+    .mascot-state-card {
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+    }
+
+    /* Misuse Grid */
+    .dont-card {
+      background: var(--color-paper);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .dont-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: #FEE2E2;
+      color: #EF4444;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+
+<main class="book">
+
+  <!-- ========================================== -->
+  <!-- SPREAD 01: WHAT IS KICHOOK?                -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-01">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">01 / Introduction</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h1 class="title" style="margin-bottom:24px;">Smart Grocery Shopping, Simplified</h1>
+          <p style="font-size:18px; line-height:1.6; color:var(--color-ink); margin-bottom:28px;">
+            Kichook transforms the fragmented chaos of grocery shopping and kitchen pantry management into an effortless, delightful, and perfectly organized experience.
+          </p>
+          <p style="font-size:15px; line-height:1.65; color:var(--color-graphite);">
+            Born from the intersection of thoughtful culinary preparation and modern digital efficiency, Kichook unites the reliability of a physical bookmark list with the intelligence of an automated chef companion.
+          </p>
+        </div>
+
+        <div style="padding-top:28px; border-top:1px solid var(--color-line);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+            <span class="diamond-mint"></span>
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">Core Purpose</span>
+          </div>
+          <p style="font-family:var(--font-display); font-size:22px; font-weight:600; line-height:1.3; color:var(--color-ink);">
+            Organize seamlessly, cook mindfully, and bring joy back to the kitchen.
+          </p>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div style="width:380px; height:420px; display:flex; justify-content:center; align-items:center;">
+          <!-- Inlined 3D Mascot -->
+          <svg viewBox="0 0 540 600" width="360" height="400">
+            <ellipse cx="275" cy="515" rx="145" ry="22" fill="#0F172A" opacity="0.12"/>
+            <path d="M 166 220 C 166 182, 202 165, 224 165 L 224 438 L 218 448 L 166 408 Z" fill="#005E3A" stroke="#1E1E1E" stroke-width="11" stroke-linejoin="round"/>
+            <path d="M 218 168 C 218 165, 348 165, 348 168 C 356 168, 356 180, 356 195 L 356 448 L 287 395 L 218 448 Z" fill="#00A86B" stroke="#1E1E1E" stroke-width="12" stroke-linejoin="round"/>
+            <path d="M 228 174 C 230 171, 338 171, 344 174 L 344 430 L 287 384 L 228 430 Z" fill="none" stroke="#A7F3D0" stroke-width="4.5" stroke-linejoin="round" opacity="0.8"/>
+            <g>
+              <rect x="252" y="272" width="13" height="26" rx="6.5" fill="#1E1E1E"/>
+              <circle cx="257" cy="279" r="3.2" fill="#FFFFFF"/>
+              <rect x="306" y="268" width="13" height="26" rx="6.5" fill="#1E1E1E"/>
+              <circle cx="311" cy="275" r="3.2" fill="#FFFFFF"/>
+              <path d="M 276 298 Q 288 314 302 296" fill="none" stroke="#1E1E1E" stroke-width="6" stroke-linecap="round"/>
+              <ellipse cx="244" cy="298" rx="8.5" ry="5" fill="#FF6B6B" opacity="0.45"/>
+              <ellipse cx="324" cy="294" rx="8.5" ry="5" fill="#FF6B6B" opacity="0.45"/>
+            </g>
+            <ellipse cx="282" cy="165" rx="86" ry="14" fill="#003D24" opacity="0.35"/>
+            <path d="M 194 150 C 160 130, 154 75, 202 54 C 214 20, 276 12, 310 26 C 346 14, 392 38, 392 78 C 424 104, 412 148, 374 150 Z" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="12" stroke-linejoin="round"/>
+            <path d="M 192 146 C 192 136, 376 136, 376 146 L 374 172 C 374 182, 194 182, 194 172 Z" fill="#F8FAFC" stroke="#1E1E1E" stroke-width="11" stroke-linejoin="round"/>
+            <g>
+              <path d="M 352 308 C 378 298, 394 280, 398 250" fill="none" stroke="#1E1E1E" stroke-width="11" stroke-linecap="round"/>
+              <ellipse cx="408" cy="242" rx="25" ry="27" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="10"/>
+              <path d="M 388 252 C 376 244, 374 228, 390 230 Z" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="8"/>
+            </g>
+            <g>
+              <line x1="406" y1="102" x2="430" y2="86" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+              <line x1="422" y1="130" x2="450" y2="124" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+              <line x1="416" y1="158" x2="444" y2="166" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <p class="mono" style="margin-top:20px;">Fig. 01 — The List-Ribbon Chef, Primary Brand Mascot</p>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">01 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 02: BRAND PRINCIPLES                -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-02">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">02 / Introduction</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Brand Principles</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            Four core tenets govern every interface design, microcopy decision, and feature engineering milestone across the Kichook ecosystem.
+          </p>
+          <p style="font-size:14px; line-height:1.6; color:var(--color-graphite);">
+            These principles keep our mobile application focused on high-efficiency grocery workflows while preserving the warmth of kitchen craft.
+          </p>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono" style="color:var(--color-ink);">Values Anchor</span>
+          <p style="font-size:13px; color:var(--color-graphite); margin-top:6px;">Never sacrifice clarity for decorative embellishment.</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:48px;">
+        <div class="grid-2x2">
+          <div class="grid-cell">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">P — 01</span>
+            <div>
+              <h3 style="font-family:var(--font-display); font-size:24px; font-weight:600; margin-bottom:10px;">Smart Lists</h3>
+              <p style="font-size:14px; line-height:1.6; color:var(--color-graphite);">
+                Intelligent categorization and predictive suggestions reduce input friction to zero, turning grocery planning into a two-minute flow.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-cell">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">P — 02</span>
+            <div>
+              <h3 style="font-family:var(--font-display); font-size:24px; font-weight:600; margin-bottom:10px;">Save Time</h3>
+              <p style="font-size:14px; line-height:1.6; color:var(--color-graphite);">
+                Sorted store aisles, fast checkoffs, and intuitive grouping ensure shopping trips are swift, focused, and free from backtracking.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-cell">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">P — 03</span>
+            <div>
+              <h3 style="font-family:var(--font-display); font-size:24px; font-weight:600; margin-bottom:10px;">100% Organized</h3>
+              <p style="font-size:14px; line-height:1.6; color:var(--color-graphite);">
+                Total visibility over pantry stock, purchase history, and recurring essentials. Prevent forgotten ingredients and duplicate buys.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-cell">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">P — 04</span>
+            <div>
+              <h3 style="font-family:var(--font-display); font-size:24px; font-weight:600; margin-bottom:10px;">Happy Cook</h3>
+              <p style="font-size:14px; line-height:1.6; color:var(--color-graphite);">
+                Technology should celebrate culinary joy. Friendly visual feedback, encouraging microcopy, and warm aesthetics welcome the user home.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">02 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 03: SYMBOL CONCEPT                  -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-03">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">03 / Logo System</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Symbol Concept</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:20px;">
+            The Kichook mark synthesizes two essential culinary and organizational archetypes into a single inseparable entity.
+          </p>
+          <div style="background:var(--color-mist); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:20px; margin-bottom:24px;">
+            <p style="font-family:var(--font-display); font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:6px;">
+              Shopping List Bookmark + Chef Toque
+            </p>
+            <p style="font-size:13px; color:var(--color-graphite); line-height:1.5;">
+              Organize (the notched bookmark ribbon) fused with Cook Smart (the billowing chef toque).
+            </p>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--color-line); padding-top:20px;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <tr style="border-bottom:1px solid var(--color-line);"><td class="mono" style="padding:8px 0;">Field Ratio</td><td style="text-align:right; font-weight:600;">1 : 1.12</td></tr>
+            <tr style="border-bottom:1px solid var(--color-line);"><td class="mono" style="padding:8px 0;">Tilt Angle</td><td style="text-align:right; font-weight:600;">-12° Jaunty</td></tr>
+            <tr style="border-bottom:1px solid var(--color-line);"><td class="mono" style="padding:8px 0;">Outline Weight</td><td style="text-align:right; font-weight:600;">12px Uniform</td></tr>
+            <tr><td class="mono" style="padding:8px 0;">Clear Space</td><td style="text-align:right; font-weight:600;">1 Toque Height</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <!-- Construction Diagram Grid -->
+        <div style="width:480px; height:480px; background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); position:relative; display:flex; align-items:center; justify-content:center;">
+          <svg width="440" height="440" viewBox="0 0 440 440">
+            <!-- Grid Lines -->
+            <defs>
+              <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+                <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="440" height="440" fill="url(#grid)" />
+            <!-- Axis Guide -->
+            <line x1="220" y1="0" x2="220" y2="440" stroke="#FF6B6B" stroke-dasharray="4,4" stroke-width="1.5"/>
+            <line x1="0" y1="220" x2="440" y2="220" stroke="#FF6B6B" stroke-dasharray="4,4" stroke-width="1.5"/>
+            <!-- Guide Circles -->
+            <circle cx="220" cy="180" r="140" fill="none" stroke="#00A86B" stroke-dasharray="6,6" stroke-width="1.5" opacity="0.6"/>
+            <!-- Geometric Mark Geometry Preview -->
+            <path d="M 180 180 C 180 170, 260 170, 260 180 L 260 340 L 220 310 L 180 340 Z" fill="none" stroke="#00A86B" stroke-width="4"/>
+            <path d="M 170 170 C 145 150, 150 110, 180 95 C 190 70, 230 65, 250 80 C 275 70, 305 90, 300 120 C 315 135, 310 165, 285 170 Z" fill="none" stroke="#1E1E1E" stroke-width="4"/>
+            <circle cx="220" cy="220" r="4" fill="#FF6B6B"/>
+          </svg>
+        </div>
+        <p class="mono" style="margin-top:20px;">Plate 01 — Geometric Construction & Vector Axis Alignment</p>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">03 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 04: LOGO OVERVIEW                   -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-04">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">04 / Logo System</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Logo Overview</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            The primary lockup pairs the 3D List-Ribbon Chef mark with the custom lowercase wordmark in Fraunces, anchored by the brand descriptor.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+              <span style="color:var(--color-mint); font-weight:bold;">✓</span>
+              <span>Horizontal lockup is the default for headers</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+              <span style="color:var(--color-mint); font-weight:bold;">✓</span>
+              <span>Standalone squircle mark for app icon and avatar</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+              <span style="color:var(--color-mint); font-weight:bold;">✓</span>
+              <span>Reversed ink variant for high-contrast dark surfaces</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono" style="color:var(--color-graphite);">Wordmark Tracking</span>
+          <p style="font-family:var(--font-mono); font-size:14px; font-weight:600; margin-top:4px;">-0.03em Tight Optical</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="gap:24px;">
+        <!-- Primary Horizontal Lockup -->
+        <div style="width:100%; height:200px; background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; gap:36px; padding:0 40px;">
+          <!-- Mini SVG Mascot -->
+          <svg viewBox="0 0 540 600" width="100" height="110">
+            <path d="M 166 220 C 166 182, 202 165, 224 165 L 224 438 L 218 448 L 166 408 Z" fill="#005E3A" stroke="#1E1E1E" stroke-width="16" stroke-linejoin="round"/>
+            <path d="M 218 168 C 218 165, 348 165, 348 168 C 356 168, 356 180, 356 195 L 356 448 L 287 395 L 218 448 Z" fill="#00A86B" stroke="#1E1E1E" stroke-width="16" stroke-linejoin="round"/>
+            <path d="M 194 150 C 160 130, 154 75, 202 54 C 214 20, 276 12, 310 26 C 346 14, 392 38, 392 78 C 424 104, 412 148, 374 150 Z" fill="#FFFFFF" stroke="#1E1E1E" stroke-width="16" stroke-linejoin="round"/>
+            <path d="M 192 146 C 192 136, 376 136, 376 146 L 374 172 C 374 182, 194 182, 194 172 Z" fill="#F8FAFC" stroke="#1E1E1E" stroke-width="14" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div style="font-family:var(--font-display); font-size:64px; font-weight:700; letter-spacing:-0.03em; color:var(--color-ink); line-height:1;">kichook</div>
+            <div style="font-family:var(--font-sans); font-size:14px; font-weight:500; color:var(--color-graphite); letter-spacing:0.04em; margin-top:6px;">Smart Grocery Shopping, Simplified</div>
+          </div>
+        </div>
+
+        <!-- Secondary Variants Row -->
+        <div style="width:100%; display:grid; grid-template-columns:1fr 1fr; gap:24px; height:180px;">
+          <!-- Squircle App Icon -->
+          <div style="background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; gap:20px;">
+            <div style="width:80px; height:80px; background:var(--color-mint); border-radius:20px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 16px rgba(0,168,107,0.25);">
+              <svg viewBox="0 0 540 600" width="54" height="60">
+                <path d="M 218 168 L 356 168 L 356 448 L 287 395 L 218 448 Z" fill="#FFFFFF"/>
+                <circle cx="282" cy="115" r="70" fill="#FFFFFF"/>
+              </svg>
+            </div>
+            <div>
+              <span class="mono">02 / Favicon</span>
+              <div style="font-weight:600; font-size:16px; margin-top:4px;">App Icon Squircle</div>
+            </div>
+          </div>
+
+          <!-- Reversed Dark Lockup -->
+          <div style="background:var(--color-ink); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; gap:20px; color:var(--color-paper);">
+            <div style="font-family:var(--font-display); font-size:36px; font-weight:700; letter-spacing:-0.03em;">kichook</div>
+            <div style="border-left:1px solid rgba(255,255,255,0.2); padding-left:14px;">
+              <span class="mono" style="color:var(--color-slate);">05 / Inverted</span>
+              <div style="font-size:13px; color:#FFFFFF; margin-top:2px;">Charcoal Night</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">04 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 05: DO'S & DON'TS                   -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-05">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">05 / Logo System</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Do's & Don'ts</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            To preserve the optical weight, recognition, and craft of the Kichook identity, the logo and mascot must never be altered or subjected to arbitrary styling.
+          </p>
+          <div style="border:1px dashed var(--color-mint); background:var(--color-mist); padding:20px; border-radius:var(--radius-md); margin-bottom:24px;">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">Clear Space</span>
+            <p style="font-size:14px; margin-top:6px; color:var(--color-ink);">
+              Maintain a minimum exclusion zone equal to <strong>1 toque height</strong> around all sides of the mark.
+            </p>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono">Minimum Sizes</span>
+          <div style="display:flex; gap:24px; margin-top:8px;">
+            <div><strong>28px</strong> <span style="color:var(--color-graphite); font-size:12px;">Digital Icon</span></div>
+            <div><strong>12mm</strong> <span style="color:var(--color-graphite); font-size:12px;">Print Collateral</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:48px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:20px; width:100%; height:100%;">
+          <div class="dont-card">
+            <span class="dont-badge">✕ NEVER</span>
+            <div style="filter:hue-rotate(180deg); transform:scale(0.85);">
+              <div style="font-family:var(--font-display); font-size:32px; font-weight:700; color:#8B5CF6;">kichook</div>
+            </div>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:12px;">Never recolor mark or wordmark off-palette</p>
+          </div>
+
+          <div class="dont-card">
+            <span class="dont-badge">✕ NEVER</span>
+            <div style="transform:scaleX(1.5) scaleY(0.7);">
+              <div style="font-family:var(--font-display); font-size:32px; font-weight:700; color:var(--color-ink);">kichook</div>
+            </div>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:12px;">Never stretch or distort aspect ratio</p>
+          </div>
+
+          <div class="dont-card">
+            <span class="dont-badge">✕ NEVER</span>
+            <div style="transform:rotate(-18deg);">
+              <div style="font-family:var(--font-display); font-size:32px; font-weight:700; color:var(--color-ink);">kichook</div>
+            </div>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:12px;">Never tilt or rotate the horizontal lockup</p>
+          </div>
+
+          <div class="dont-card">
+            <span class="dont-badge">✕ NEVER</span>
+            <div style="opacity:0.35;">
+              <div style="font-family:var(--font-display); font-size:32px; font-weight:700; color:#E2E8F0;">kichook</div>
+            </div>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:12px;">Never place over low-contrast backgrounds</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">05 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 06: MASCOT EXPRESSIONS              -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-06">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">06 / Mascot / Illustration</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">The Character System</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            The List-Ribbon Chef accompanies the user across all pivotal moments in the app flow, communicating status with expressive clarity and warmth.
+          </p>
+          <div style="background:var(--color-mist); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:20px;">
+            <span class="mono" style="color:var(--color-ink);">Character Rule</span>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:6px; line-height:1.5;">
+              Always use the 6 approved canonical poses from Module 06. Never draw arbitrary facial expressions or decouple the toque from the ribbon head.
+            </p>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono">06 Poses / Canonical System</span>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:40px;">
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr); gap:16px; width:100%; height:100%;">
+          <div class="mascot-state-card">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">01 / Welcome</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:var(--color-ink);">Waving Chef</div>
+            <p style="font-size:12px; color:var(--color-graphite);">Holding pencil ready to start</p>
+          </div>
+
+          <div class="mascot-state-card">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">02 / Empty Cart</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:var(--color-ink);">Hanging Ribbon</div>
+            <p style="font-size:12px; color:var(--color-graphite);">Holding checklist on wire rail</p>
+          </div>
+
+          <div class="mascot-state-card" style="background:var(--color-mint); color:#FFFFFF;">
+            <span class="mono" style="color:rgba(255,255,255,0.8); font-weight:600;">03 / Added to Cart</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:#FFFFFF;">Thumbs Up</div>
+            <p style="font-size:12px; color:rgba(255,255,255,0.85);">Celebrating check confirmation</p>
+          </div>
+
+          <div class="mascot-state-card">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">04 / Live Search</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:var(--color-ink);">Detective Chef</div>
+            <p style="font-size:12px; color:var(--color-graphite);">Inspecting with magnifier</p>
+          </div>
+
+          <div class="mascot-state-card">
+            <span class="mono" style="color:var(--color-mint); font-weight:600;">05 / Delivery Sprint</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:var(--color-ink);">Grocery Runner</div>
+            <p style="font-size:12px; color:var(--color-graphite);">Sprinting with brown paper bag</p>
+          </div>
+
+          <div class="mascot-state-card" style="background:var(--color-ink); color:#FFFFFF;">
+            <span class="mono" style="color:var(--color-slate); font-weight:600;">06 / List Done</span>
+            <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:#FFFFFF;">Bow Tied</div>
+            <p style="font-size:12px; color:var(--color-slate);">Tied with coral ribbon & receipt</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">06 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 07: TYPOGRAPHY                      -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-07">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">07 / Typography</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Typeface Specimen</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            Kichook pairs the organic, culinary warmth of <strong>Fraunces</strong> with the crisp, modern clarity of <strong>Funnel Display</strong>.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:20px; font-weight:700;">Fraunces</div>
+              <span class="mono">Display & Wordmark / Variable Serif</span>
+            </div>
+            <div>
+              <div style="font-family:var(--font-sans); font-size:20px; font-weight:600;">Funnel Display</div>
+              <span class="mono">UI Body, Navigation & Controls / Geometric Sans</span>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono); font-size:18px; font-weight:500;">JetBrains Mono</div>
+              <span class="mono">Metadata, Units & Indices</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono">License</span>
+          <p style="font-size:13px; color:var(--color-graphite); margin-top:4px;">SIL Open Font License 1.1</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="align-items:flex-start; justify-content:space-between; padding:56px;">
+        <div style="font-family:var(--font-display); font-size:84px; font-weight:700; line-height:0.95; color:var(--color-ink); letter-spacing:-0.03em;">
+          Fraunces &<br>Funnel Display
+        </div>
+
+        <div style="width:100%; border-top:1px solid var(--color-line); border-bottom:1px solid var(--color-line); padding:28px 0;">
+          <div class="mono" style="margin-bottom:12px;">Complete Character Set</div>
+          <div style="font-family:var(--font-sans); font-size:22px; line-height:1.6; letter-spacing:0.02em;">
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+            abcdefghijklmnopqrstuvwxyz 0123456789<br>
+            ₹ $ € £ & % @ # ! ? * , . : ; ( ) [ ]
+          </div>
+        </div>
+
+        <div style="width:100%; display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="mono">Regular 400</span>
+            <span style="font-family:var(--font-sans); font-size:18px; font-weight:400;">Smart lists save kitchen hours every week.</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="mono">Medium 500</span>
+            <span style="font-family:var(--font-sans); font-size:18px; font-weight:500;">Intelligent categorization simplifies every trip.</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="mono">SemiBold 600</span>
+            <span style="font-family:var(--font-sans); font-size:18px; font-weight:600;">Never forget a pantry essential again.</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="mono">Bold 700</span>
+            <span style="font-family:var(--font-sans); font-size:18px; font-weight:700;">Fresh produce, pantry staples, complete delight.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">07 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 08: HIERARCHY                       -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-08">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">08 / Typography</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content" style="flex-direction:column; padding:48px 56px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:32px; border-bottom:1px solid var(--color-line); padding-bottom:20px;">
+        <h2 class="title">Type Hierarchy Scale</h2>
+        <span class="mono">Proportional 8px Base Grid</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; justify-content:space-between; flex:1;">
+        <!-- Display 64 -->
+        <div style="display:flex; align-items:baseline; border-bottom:1px solid var(--color-line); padding-bottom:16px;">
+          <div style="width:260px; flex:none;" class="mono">Display 64 / Bold / -0.03em</div>
+          <div style="font-family:var(--font-display); font-size:64px; font-weight:700; line-height:1; letter-spacing:-0.03em;">Smart Grocery</div>
+        </div>
+
+        <!-- Title 32 -->
+        <div style="display:flex; align-items:baseline; border-bottom:1px solid var(--color-line); padding-bottom:16px;">
+          <div style="width:260px; flex:none;" class="mono">Title 32 / SemiBold / -0.02em</div>
+          <div style="font-family:var(--font-display); font-size:32px; font-weight:600; line-height:1.2;">Weekly Kitchen Essentials</div>
+        </div>
+
+        <!-- Subtitle 20 -->
+        <div style="display:flex; align-items:baseline; border-bottom:1px solid var(--color-line); padding-bottom:16px;">
+          <div style="width:260px; flex:none;" class="mono">Subtitle 20 / Medium / 0em</div>
+          <div style="font-family:var(--font-sans); font-size:20px; font-weight:500;">Dairy, Fresh Vegetables, Baking Staples</div>
+        </div>
+
+        <!-- Body 16 -->
+        <div style="display:flex; align-items:baseline; border-bottom:1px solid var(--color-line); padding-bottom:16px;">
+          <div style="width:260px; flex:none;" class="mono">Body 16 / Regular / 0em</div>
+          <div style="font-family:var(--font-sans); font-size:16px; font-weight:400; color:var(--color-graphite);">Add 2 bunches of fresh cilantro, whole milk, and olive oil to today's cart.</div>
+        </div>
+
+        <!-- Caption 13 -->
+        <div style="display:flex; align-items:baseline; border-bottom:1px solid var(--color-line); padding-bottom:16px;">
+          <div style="width:260px; flex:none;" class="mono">Caption 13 / Regular / +0.02em</div>
+          <div style="font-family:var(--font-sans); font-size:13px; font-weight:400; color:var(--color-graphite);">Last updated 12 minutes ago by Baibhav Kumar</div>
+        </div>
+
+        <!-- Label 11 -->
+        <div style="display:flex; align-items:baseline;">
+          <div style="width:260px; flex:none;" class="mono">Label 11 / Medium / +0.12em</div>
+          <div style="font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--color-mint);">IN CART / 3 ITEMS REMAINING</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">08 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 09: COLOUR SYSTEM                   -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-09">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">09 / Colour System</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Core Palette</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            The palette balances the organic vitality of fresh culinary ingredients with clean editorial paper and a high-energy coral spotlight.
+          </p>
+          <div style="margin-bottom:24px;">
+            <div class="mono" style="margin-bottom:8px;">Proportional Balance</div>
+            <!-- Proportions Bar -->
+            <div style="height:24px; width:100%; display:flex; border-radius:6px; overflow:hidden; border:1px solid var(--color-line);">
+              <div style="width:60%; background:#FFFFFF;" title="White / Mist (60%)"></div>
+              <div style="width:25%; background:#00A86B;" title="Mint Ribbon (25%)"></div>
+              <div style="width:10%; background:#1E1E1E;" title="Charcoal Ink (10%)"></div>
+              <div style="width:5%; background:#FF6B6B;" title="Signal Coral (5%)"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--color-graphite); margin-top:4px;" class="mono">
+              <span>Paper 60%</span>
+              <span>Mint 25%</span>
+              <span>Ink 10%</span>
+              <span>Coral 5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding-top:20px; border-top:1px solid var(--color-line);">
+          <span class="mono">Accessibility Standard</span>
+          <p style="font-size:13px; color:var(--color-graphite); margin-top:4px;">WCAG 2.1 AA Compliant on all foreground text pairings.</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:48px;">
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; width:100%; height:100%;">
+          <!-- Mint Ribbon -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#00A86B;"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Mint Ribbon</strong>
+              <span class="mono">Primary Brand / #00A86B</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(64% 0.17 155)</span>
+            </div>
+          </div>
+
+          <!-- Signal Coral -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FF6B6B;"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Signal Coral</strong>
+              <span class="mono">Spotlight Accent / #FF6B6B</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(68% 0.19 25)</span>
+            </div>
+          </div>
+
+          <!-- Charcoal Ink -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#1E1E1E;"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Charcoal Ink</strong>
+              <span class="mono">Foreground Text / #1E1E1E</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(22% 0 0)</span>
+            </div>
+          </div>
+
+          <!-- Warm Ivory -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FBF9F5; border-bottom:1px solid var(--color-line);"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Warm Ivory</strong>
+              <span class="mono">Canvas Surface / #FBF9F5</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(98% 0.005 85)</span>
+            </div>
+          </div>
+
+          <!-- Paper White -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FFFFFF; border-bottom:1px solid var(--color-line);"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Paper White</strong>
+              <span class="mono">Clean Ground / #FFFFFF</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(100% 0 0)</span>
+            </div>
+          </div>
+
+          <!-- Line Slate -->
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#E2E8F0;"></div>
+            <div class="swatch-meta">
+              <strong style="font-size:16px;">Line Slate</strong>
+              <span class="mono">Dividers & Hairlines / #E2E8F0</span>
+              <span style="font-size:12px; color:var(--color-graphite);">oklch(92% 0.005 240)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">09 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 10: VOICE & TONE                    -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-10">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">10 / Voice & Tone</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Voice & Tone</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            Kichook speaks like an organized, knowledgeable friend in the kitchen: encouraging, crisp, and helpful.
+          </p>
+          <div style="background:var(--color-mist); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:20px;">
+            <span class="mono" style="color:var(--color-ink);">Registers & Boundary</span>
+            <p style="font-size:13px; color:var(--color-graphite); margin-top:6px; line-height:1.5;">
+              In the product, stay calm, direct, and actionable. Save witty banter for onboarding celebrations and empty state delights.
+            </p>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono">Personality Anchors</span>
+          <p style="font-size:14px; font-weight:600; margin-top:4px;">Warm / Encouraging / Crisp</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:48px;">
+        <div style="display:flex; flex-direction:column; gap:24px; width:100%; height:100%; justify-content:space-between;">
+          <!-- We Are / We Are Not Table -->
+          <div style="background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); overflow:hidden;">
+            <table style="width:100%; border-collapse:collapse; font-size:14px;">
+              <thead style="background:var(--color-mist); border-bottom:1px solid var(--color-line);">
+                <tr>
+                  <th style="padding:12px 24px; text-align:left;" class="mono">We Are</th>
+                  <th style="padding:12px 24px; text-align:left;" class="mono">We Are Not</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--color-line);">
+                  <td style="padding:16px 24px; font-weight:500;">Helpful & encouraging</td>
+                  <td style="padding:16px 24px; color:var(--color-graphite);">Pretentious or clinical</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-line);">
+                  <td style="padding:16px 24px; font-weight:500;">Orderly & organized</td>
+                  <td style="padding:16px 24px; color:var(--color-graphite);">Cluttered or overwhelming</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-line);">
+                  <td style="padding:16px 24px; font-weight:500;">Warm & lighthearted</td>
+                  <td style="padding:16px 24px; color:var(--color-graphite);">Robotic or overly clever</td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px; font-weight:500;">Specific & actionable</td>
+                  <td style="padding:16px 24px; color:var(--color-graphite);">Vague or apologetic</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Vocabulary Matrix -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div style="background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:20px;">
+              <span class="mono" style="color:var(--color-mint); font-weight:600;">Words We Use</span>
+              <p style="font-size:14px; margin-top:8px; line-height:1.6; color:var(--color-ink);">
+                cook smart, simplified, fresh, pantry, essentials, ready, all set, in good hands
+              </p>
+            </div>
+
+            <div style="background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:20px;">
+              <span class="mono" style="color:var(--color-accent); font-weight:600;">Words We Avoid</span>
+              <p style="font-size:14px; margin-top:8px; line-height:1.6; color:var(--color-graphite);">
+                revolutionary, synergy, disrupt, leverage, oops, sorry, grocery guru, rockstar
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">10 / 11</span>
+    </footer>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- SPREAD 11: APPLICATIONS                    -->
+  <!-- ========================================== -->
+  <section class="spread" id="spread-11">
+    <header class="rh">
+      <div style="display:flex; gap:14px; align-items:center;">
+        <span class="diamond"></span>
+        <span class="mono" style="color:var(--color-ink); font-weight:600;">11 / Applications</span>
+      </div>
+      <span class="mono">Kichook — Brand Guidelines</span>
+    </header>
+
+    <div class="content">
+      <div class="left-col">
+        <div>
+          <h2 class="title" style="margin-bottom:24px;">Real Collateral</h2>
+          <p style="font-size:16px; line-height:1.6; color:var(--color-graphite); margin-bottom:24px;">
+            The Kichook identity seamlessly translates from tactile physical media (embossed tote bags) to crisp mobile app touchpoints.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="mono" style="color:var(--color-ink);">Touchpoints Shown:</div>
+            <div style="font-size:14px; color:var(--color-graphite);">1. Canvas Market Tote Bag (Screenprint)</div>
+            <div style="font-size:14px; color:var(--color-graphite);">2. Android Splash & Onboarding Screen</div>
+            <div style="font-size:14px; color:var(--color-graphite);">3. Fresh Grocery Card Component</div>
+          </div>
+        </div>
+
+        <div style="padding-top:24px; border-top:1px solid var(--color-line);">
+          <span class="mono">Production Ready</span>
+          <p style="font-size:13px; color:var(--color-graphite); margin-top:4px;">Android 14+ Adaptive Icon & SVG Vector Assets</p>
+        </div>
+      </div>
+
+      <div class="right-col" style="padding:48px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; width:100%; height:100%;">
+          <!-- Tote Bag Simulation -->
+          <div style="background:#E8E0D2; border:1px solid rgba(0,0,0,0.08); border-radius:var(--radius-md); padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <div style="font-family:var(--font-display); font-size:48px; font-weight:700; color:#4A3B32; opacity:0.85;">kichook</div>
+            <div style="font-family:var(--font-sans); font-size:13px; color:#4A3B32; opacity:0.75; margin-top:6px;">Smart Grocery Shopping, Simplified</div>
+            <span class="mono" style="margin-top:28px; color:#4A3B32; opacity:0.6;">Natural Linen Tote Bag</span>
+          </div>
+
+          <!-- Mobile App Screen Card -->
+          <div style="background:var(--color-paper); border:1px solid var(--color-line); border-radius:var(--radius-md); padding:28px; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="mono" style="color:var(--color-mint); font-weight:600;">Fresh List</span>
+              <span class="mono">4 Items</span>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display); font-size:24px; font-weight:600; color:var(--color-ink);">Organic Avocados</div>
+              <p style="font-size:13px; color:var(--color-graphite); margin-top:4px;">Produce Aisle / 3 pcs</p>
+            </div>
+            <button style="background:var(--color-mint); color:#FFFFFF; border:none; padding:12px 20px; border-radius:8px; font-family:var(--font-sans); font-weight:600; font-size:14px; cursor:pointer;">
+              Add to Grocery Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ft">
+      <span class="mono">kichook.app</span>
+      <span class="mono">11 / 11</span>
+    </footer>
+  </section>
+
+</main>
+
+<script>
+  // Automatic fit-to-viewport scaling preserving 1440x900 proportions
+  const fit = () => {
+    const s = Math.min(1, (Math.min(window.innerWidth, 1560) - 56) / 1440);
+    document.documentElement.style.setProperty('--fit', s);
+  };
+  window.addEventListener('resize', fit);
+  fit();
+</script>
+
+</body>
+</html>

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/grocery_item.dart';
 import '../screens/template_detail_screen.dart';
 
@@ -62,7 +61,7 @@ class SavedTemplatesModal extends StatelessWidget {
                     children: [
                       Text(
                         'GO-TO RESTOCK LISTS',
-                        style: GoogleFonts.spaceGrotesk(
+                        style: TextStyle(fontFamily: 'Funnel Display', 
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF0F172A),
@@ -71,7 +70,7 @@ class SavedTemplatesModal extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'Your saved presets for instant kitchen restocking',
-                        style: GoogleFonts.spaceGrotesk(
+                        style: TextStyle(fontFamily: 'Funnel Display', 
                           fontSize: 12, // >= 12px
                           fontWeight: FontWeight.w500,
                           color: const Color(0xFF64748B),
@@ -102,7 +101,7 @@ class SavedTemplatesModal extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           'No saved restock presets yet',
-                          style: GoogleFonts.spaceGrotesk(
+                          style: TextStyle(fontFamily: 'Funnel Display', 
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF64748B),
@@ -112,7 +111,7 @@ class SavedTemplatesModal extends StatelessWidget {
                         Text(
                           'Build a list and tap "Save Preset" in the list drawer',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.spaceGrotesk(
+                          style: TextStyle(fontFamily: 'Funnel Display', 
                             fontSize: 13,
                             color: const Color(0xFF94A3B8),
                           ),
@@ -153,7 +152,7 @@ class SavedTemplatesModal extends StatelessWidget {
                                     children: [
                                       Text(
                                         tmpl.name,
-                                        style: GoogleFonts.spaceGrotesk(
+                                        style: TextStyle(fontFamily: 'Funnel Display', 
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
                                           color: const Color(0xFF0F172A),
@@ -161,8 +160,8 @@ class SavedTemplatesModal extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '${tmpl.items.length} items • Kitchen Preset',
-                                        style: GoogleFonts.spaceGrotesk(
+                                        '${tmpl.items.length} items | Kitchen Preset',
+                                        style: TextStyle(fontFamily: 'Funnel Display', 
                                           fontSize: 12, // >= 12px
                                           fontWeight: FontWeight.w500,
                                           color: const Color(0xFF64748B),
@@ -193,7 +192,7 @@ class SavedTemplatesModal extends StatelessWidget {
                                     icon: const Icon(Icons.visibility_outlined, size: 16, color: Color(0xFF475569)),
                                     label: Text(
                                       'View Items',
-                                      style: GoogleFonts.spaceGrotesk(
+                                      style: TextStyle(fontFamily: 'Funnel Display', 
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF475569),
@@ -223,7 +222,7 @@ class SavedTemplatesModal extends StatelessWidget {
                                     icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 18),
                                     label: Text(
                                       'USE TEMPLATE',
-                                      style: GoogleFonts.spaceGrotesk(
+                                      style: TextStyle(fontFamily: 'Funnel Display', 
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 0.5,

@@ -1,0 +1,56 @@
+{
+  "domain": "Data Safety and Privacy",
+  "findings": [
+    {
+      "psl_constant": "RACE_ETHNICITY",
+      "policy_id": "data_safety_section",
+      "issue_summary": "Data Safety Compliant (Local-Only)",
+      "severity": "SUGGESTION",
+      "files_involved": [
+        "lib\\screens\\splash_screen.dart"
+      ],
+      "evidence": "Pattern match on 'race' in UI asset/styling strings. No sensitive demographic data collected or off-device transmitted.",
+      "recommendation": "No action required.",
+      "is_transferred": false,
+      "user_initiated": false,
+      "is_third_party": false,
+      "prominent_disclosure_status": "EXEMPT",
+      "purpose": "Local functionality only",
+      "linked_to_user": false
+    },
+    {
+      "psl_constant": "PERSONAL_INFO_OTHER",
+      "policy_id": "data_safety_section",
+      "issue_summary": "Data Safety Compliant (Local-Only)",
+      "severity": "SUGGESTION",
+      "files_involved": [
+        "lib\\models\\grocery_item.dart"
+      ],
+      "evidence": "Local data model properties only. No personal identity information transmitted off-device.",
+      "recommendation": "No action required.",
+      "is_transferred": false,
+      "user_initiated": false,
+      "is_third_party": false,
+      "prominent_disclosure_status": "EXEMPT",
+      "purpose": "Local functionality only",
+      "linked_to_user": false
+    },
+    {
+      "psl_constant": "FILES_AND_DOCS",
+      "policy_id": "data_safety_section",
+      "issue_summary": "Data Safety Compliant (Local-Only)",
+      "severity": "SUGGESTION",
+      "files_involved": [
+        ".dart_tool\\flutter_build\\dart_plugin_registrant.dart"
+      ],
+      "evidence": "Local app storage path provider used for local caching. No user files transmitted off-device.",
+      "recommendation": "No action required.",
+      "is_transferred": false,
+      "user_initiated": false,
+      "is_third_party": false,
+      "prominent_disclosure_status": "EXEMPT",
+      "purpose": "Local functionality only",
+      "linked_to_user": false
+    }
+  ]
+}

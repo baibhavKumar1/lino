@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
+import '../widgets/tactile_tap.dart';
 
 class TemplateDetailScreen extends StatelessWidget {
   final SavedListTemplate template;
@@ -15,9 +16,9 @@ class TemplateDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         scrolledUnderElevation: 1,
         title: Column(
@@ -25,19 +26,11 @@ class TemplateDetailScreen extends StatelessWidget {
           children: [
             Text(
               template.name,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
-              ),
+              style: AppTypography.displaySmall(fontSize: 18),
             ),
             Text(
               '${template.items.length} restock items',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF64748B),
-              ),
+              style: AppTypography.bodySmall(),
             ),
           ],
         ),
@@ -53,51 +46,45 @@ class TemplateDetailScreen extends StatelessWidget {
                 final item = template.items[index];
                 return Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    color: AppColors.surface,
+                    borderRadius: AppRadii.lgBorder,
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: AppShadows.soft,
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     leading: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.primaryLight,
+                        borderRadius: AppRadii.mdBorder,
                       ),
-                      child: const Icon(
-                        Icons.restaurant_menu_rounded,
-                        color: Color(0xFF059669),
+                      child: Icon(
+                        item.category.icon,
+                        color: AppColors.primaryDark,
                         size: 20,
                       ),
                     ),
                     title: Text(
                       item.nameEn,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
-                      ),
+                      style: AppTypography.bodyLarge(fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
                       item.nameHi,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 12,
-                        color: const Color(0xFF64748B),
-                      ),
+                      style: AppTypography.bodySmall(),
                     ),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
+                      decoration: const BoxDecoration(
+                        color: AppColors.surfaceMuted,
+                        borderRadius: AppRadii.mdBorder,
                       ),
                       child: Text(
                         '${item.quantity} x ${item.selectedUnit}',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 13,
+                        style: const TextStyle(
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF334155),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -111,27 +98,36 @@ class TemplateDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  icon: const Icon(Icons.shopping_cart_checkout_rounded, color: Colors.white, size: 20),
-                  label: Text(
-                    'USE THIS TEMPLATE TO SHOP',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onPressed: () {
+                height: 48,
+                child: TactileTap(
+                  onTap: () {
                     onUseTemplate(template);
                     Navigator.of(context).pop();
                   },
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: AppRadii.mdBorder,
+                      boxShadow: AppShadows.soft,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.shopping_cart_checkout_rounded, color: AppColors.textWhite, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'USE THIS TEMPLATE TO SHOP',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: AppColors.textWhite,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

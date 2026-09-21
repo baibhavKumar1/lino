@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
+import '../models/saved_recipe.dart';
+import '../models/pantry_item.dart';
+import '../services/neon_db_service.dart';
+import '../services/auth_service.dart';
+import '../screens/meal_planner_screen.dart';
+import '../screens/meal_calendar_screen.dart';
+import '../screens/onboarding_screen.dart';
+import '../services/openrouter_service.dart';
+import '../services/ingredient_sanitizer.dart';
 import '../widgets/shopping_list_drawer.dart';
-import '../widgets/saved_templates_modal.dart';
+import '../widgets/saved_recipes_modal.dart';
+import '../widgets/pantry_inventory_modal.dart';
+import '../widgets/receipt_importer_modal.dart';
+import '../widgets/tactile_tap.dart';
+import '../widgets/kichook_logo.dart';
+import '../widgets/textured_background.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,983 +27,1569 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late List<GroceryItem> _allItems;
-  late List<SavedListTemplate> _savedTemplates;
-  ItemCategory _selectedCategory = ItemCategory.all;
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
+  int _activeTabIndex = 0; // 0: Meal Planner, 1: Kitchen Pantry, 2: Saved Recipes, 3: Shop
+
+  List<GroceryItem> _allItems = GroceryCatalog.getInitialItems();
+  List<SavedListTemplate> _savedTemplates = [];
+  List<SavedRecipe> _savedRecipes = [];
+  List<PantryItem> _pantryItems = [];
+  Map<String, String?> _userProfile = {};
+
+  bool _isPantryLoading = true;
+  bool _initializedOnboarding = false;
+
+  // Shop Tab State (Left Sidebar Category & Search)
+  ItemCategory _selectedShopCategory = ItemCategory.all;
+  String _shopSearchQuery = '';
+  final TextEditingController _shopSearchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _allItems = GroceryCatalog.getInitialItems();
-    _savedTemplates = GroceryCatalog.getInitialSavedTemplates();
+    Future.microtask(() => _initCloudDatabase());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedOnboarding) {
+      _initializedOnboarding = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic> && args.containsKey('initialPantryItems')) {
+        final List<PantryItem>? onboardingItems = args['initialPantryItems'] as List<PantryItem>?;
+        // User explicitly completed or skipped onboarding: respect exact list (even if empty)
+        setState(() {
+          _pantryItems = onboardingItems ?? [];
+          _isPantryLoading = false;
+        });
+        Future.microtask(() => NeonDbService.syncPantryToCloud(_pantryItems));
+      }
+    }
+  }
+
+  // Previous sequential blocking sync logic commented out below:
+  // Future<void> _initCloudDatabase() async {
+  //   await NeonDbService.seedGlobalInventoryIfEmpty(_allItems);
+  //   await NeonDbService.syncInventoryToCloud(_allItems, userId: activeId);
+  //   final cloudSavedRecipes = await NeonDbService.fetchSavedRecipesFromCloud(userId: activeId);
+  //   final cloudPantryItems = await NeonDbService.fetchPantryFromCloud(userId: activeId);
+  // }
+
+  Future<void> _initCloudDatabase() async {
+    try {
+      final session = await AuthService.getActiveUserSession();
+      // final userId = session['id'];
+      if (mounted) {
+        setState(() {
+          _userProfile = session;
+        });
+      }
+
+      await NeonDbService.initDatabase();
+
+      final activeId = session['id'] ?? 'user_kichook_primary';
+      final activeEmail = session['email'] ?? 'chef@kichook.app';
+      final activeFullName = session['fullName'] ?? 'Chef';
+      final activeHousehold = session['householdName'] ?? 'My Kitchen';
+      final activeDiet = session['dietPreference'] ?? 'Veg';
+      final activeSize = session['householdSize'] ?? '2';
+      final activeAppliances = session['appliances'] ?? 'Gas Stove,Kadai / Pan';
+      final activeExclusions = session['exclusions'] ?? '';
+
+      // Fetch user profile from database
+      final dbUser = await NeonDbService.fetchUserByEmail(activeEmail);
+      if (dbUser != null) {
+        session['fullName'] = dbUser['fullName'] ?? activeFullName;
+        session['householdName'] = dbUser['householdName'] ?? activeHousehold;
+        session['photoUrl'] = dbUser['photoUrl'] ?? session['photoUrl'];
+        session['dietPreference'] = dbUser['dietPreference'] ?? activeDiet;
+        session['householdSize'] = dbUser['householdSize'] ?? activeSize;
+        session['appliances'] = dbUser['appliances'] ?? activeAppliances;
+        session['exclusions'] = dbUser['exclusions'] ?? activeExclusions;
+        await NeonDbService.updateUserLastLogin(activeEmail);
+      } else {
+        // Self-healing: Register active user profile in Neon users table immediately
+        await NeonDbService.registerUserInCloud(
+          id: activeId,
+          email: activeEmail,
+          fullName: activeFullName,
+          photoUrl: session['photoUrl'],
+          householdName: activeHousehold,
+          dietPreference: activeDiet,
+          householdSize: activeSize,
+          appliances: activeAppliances,
+          exclusions: activeExclusions,
+        );
+      }
+
+      // Fast Parallel Fetch: Get user recipes and pantry concurrently in < 300ms
+      final results = await Future.wait([
+        NeonDbService.fetchSavedRecipesFromCloud(userId: activeId),
+        NeonDbService.fetchPantryFromCloud(userId: activeId),
+      ]);
+
+      final cloudSavedRecipes = results[0] as List<SavedRecipe>;
+      final cloudPantryItems = results[1] as List<PantryItem>;
+
+      if (mounted) {
+        setState(() {
+          _savedRecipes = cloudSavedRecipes;
+          if (cloudPantryItems.isNotEmpty || _pantryItems.isEmpty) {
+            _pantryItems = cloudPantryItems;
+          }
+          _userProfile = session;
+          _isPantryLoading = false;
+        });
+      }
+
+      // Run background catalog seeding & sync non-blockingly
+      Future.microtask(() async {
+        await NeonDbService.seedGlobalInventoryIfEmpty(_allItems);
+        await NeonDbService.syncInventoryToCloud(_allItems, userId: activeId);
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isPantryLoading = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _shopSearchController.dispose();
+    // NeonDbService.closeConnection(); // Keep connection alive across client navigation
     super.dispose();
   }
 
-  List<GroceryItem> get _filteredItems {
+  int get _totalShoppingListCount => _allItems.where((item) => item.isAdded).length;
+
+  List<GroceryItem> get _filteredShopItems {
+    final q = _shopSearchQuery.toLowerCase().trim();
+    final canonicalQuery = q.isNotEmpty ? CanonicalItemMatcher.getCanonicalKey(q) : '';
+
     return _allItems.where((item) {
-      final matchesCategory = _selectedCategory == ItemCategory.all ||
-          item.category == _selectedCategory;
+      final matchesCat = _selectedShopCategory == ItemCategory.all || item.category == _selectedShopCategory;
+      if (!matchesCat) return false;
+      if (q.isEmpty) return true;
 
-      final query = _searchQuery.toLowerCase().trim();
-      final matchesSearch = query.isEmpty ||
-          item.nameEn.toLowerCase().contains(query) ||
-          item.nameHi.toLowerCase().contains(query);
+      final nameEn = item.nameEn.toLowerCase();
+      final nameHi = item.nameHi.toLowerCase();
 
-      return matchesCategory && matchesSearch;
+      // 1. Direct substring match
+      if (nameEn.contains(q) || nameHi.contains(q)) return true;
+
+      // 2. Canonical & Alias match (e.g. typing "cumin" finds "Jeera", "arhar" finds "Toor Dal", "dahi" finds "Curd")
+      if (canonicalQuery.isNotEmpty) {
+        final itemCanonicalEn = CanonicalItemMatcher.getCanonicalKey(item.nameEn);
+        final itemCanonicalHi = CanonicalItemMatcher.getCanonicalKey(item.nameHi);
+        if (itemCanonicalEn == canonicalQuery || itemCanonicalHi == canonicalQuery) {
+          return true;
+        }
+      }
+
+      return false;
     }).toList();
   }
 
-  int get _totalAddedCount {
-    return _allItems.where((item) => item.isAdded).length;
-  }
-
-  int _getCategoryCount(ItemCategory cat) {
-    if (cat == ItemCategory.all) return _totalAddedCount;
-    return _allItems.where((i) => i.category == cat && i.isAdded).length;
-  }
-
   void _toggleItemAdded(GroceryItem item) {
-    if (item.isChecked) return; // Prevent modifying locked items
     setState(() {
-      final index = _allItems.indexWhere((i) => i.id == item.id);
-      if (index != -1) {
-        _allItems[index] = _allItems[index].copyWith(
-          isAdded: !_allItems[index].isAdded,
+      final idx = _allItems.indexWhere((i) => i.id == item.id);
+      if (idx != -1) {
+        _allItems[idx] = _allItems[idx].copyWith(
+          isAdded: !_allItems[idx].isAdded,
           quantity: 1,
         );
       }
     });
+    NeonDbService.syncInventoryToCloud(_allItems);
   }
 
   void _updateItemQuantity(GroceryItem item, int newQty) {
-    if (item.isChecked) return; // Prevent modifying locked items
     setState(() {
-      final index = _allItems.indexWhere((i) => i.id == item.id);
-      if (index != -1) {
+      final idx = _allItems.indexWhere((i) => i.id == item.id);
+      if (idx != -1) {
         if (newQty <= 0) {
-          _allItems[index] = _allItems[index].copyWith(
-            isAdded: false,
-            quantity: 1,
-          );
+          _allItems[idx] = _allItems[idx].copyWith(isAdded: false, quantity: 1);
         } else {
-          _allItems[index] = _allItems[index].copyWith(quantity: newQty);
+          _allItems[idx] = _allItems[idx].copyWith(quantity: newQty);
         }
       }
     });
+    NeonDbService.syncInventoryToCloud(_allItems);
   }
 
-  void _updateItemUnit(GroceryItem item, String newUnit) {
-    if (item.isChecked) return; // Prevent modifying locked items
+
+  void _addMissingRecipeItemsToShoppingList(List<String> missingItems) {
+    if (missingItems.isEmpty) return;
+
+    int addedCount = 0;
     setState(() {
-      final index = _allItems.indexWhere((i) => i.id == item.id);
-      if (index != -1) {
-        _allItems[index] = _allItems[index].copyWith(selectedUnit: newUnit);
-      }
-    });
-  }
+      for (final rawMissing in missingItems) {
+        // 1. Filter out limitless household items (water, ice)
+        if (IngredientSanitizer.isUniversalFreeItem(rawMissing)) {
+          continue;
+        }
 
-  void _toggleCheck(GroceryItem item) {
-    setState(() {
-      final index = _allItems.indexWhere((i) => i.id == item.id);
-      if (index != -1) {
-        _allItems[index] = _allItems[index].copyWith(
-          isChecked: !_allItems[index].isChecked,
-        );
-      }
-    });
-  }
+        // 2. Clean culinary text to get pure ingredient name
+        final cleanName = IngredientSanitizer.cleanIngredientName(rawMissing);
+        if (cleanName.isEmpty) continue;
 
-  void _clearAllList() {
-    setState(() {
-      for (int i = 0; i < _allItems.length; i++) {
-        _allItems[i] = _allItems[i].copyWith(isAdded: false, isChecked: false, quantity: 1);
-      }
-    });
-    Navigator.of(context).pop();
-  }
+        // 3. Multi-tier precision catalog matching
+        int matchIdx = IngredientSanitizer.findMatchingItemIndex(cleanName, _allItems);
 
-  void _saveCurrentListAsTemplate(String templateName) {
-    final added = _allItems.where((i) => i.isAdded).toList();
-    if (added.isEmpty) return;
-
-    final snapshots = added.map((item) {
-      return ItemSnapshot(
-        id: item.id,
-        nameEn: item.nameEn,
-        nameHi: item.nameHi,
-        category: item.category,
-        selectedUnit: item.selectedUnit,
-        quantity: item.quantity,
-      );
-    }).toList();
-
-    final newTemplate = SavedListTemplate(
-      id: 'tmpl_${DateTime.now().millisecondsSinceEpoch}',
-      name: templateName,
-      createdAt: DateTime.now(),
-      items: snapshots,
-    );
-
-    setState(() {
-      _savedTemplates.insert(0, newTemplate);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF0F172A),
-        content: Text(
-          'Saved "$templateName" master template',
-          style: GoogleFonts.spaceGrotesk(fontSize: 14, color: Colors.white),
-        ),
-      ),
-    );
-  }
-
-  void _reorderTemplate(SavedListTemplate template) {
-    setState(() {
-      // Un-add existing items first
-      for (int i = 0; i < _allItems.length; i++) {
-        _allItems[i] = _allItems[i].copyWith(isAdded: false, isChecked: false, quantity: 1);
-      }
-
-      // Reorder fresh copy of template items (Master template is NEVER modified!)
-      for (final snap in template.items) {
-        final index = _allItems.indexWhere((i) => i.id == snap.id);
-        if (index != -1) {
-          _allItems[index] = _allItems[index].copyWith(
+        if (matchIdx != -1) {
+          _allItems[matchIdx] = _allItems[matchIdx].copyWith(
             isAdded: true,
-            isChecked: false,
-            quantity: snap.quantity,
-            selectedUnit: snap.selectedUnit,
+            quantity: _allItems[matchIdx].isAdded && _allItems[matchIdx].quantity > 0 ? _allItems[matchIdx].quantity : 1,
           );
+          addedCount++;
         } else {
-          // Custom item from template
-          _allItems.insert(
-            0,
+          // 4. Create a clean, perfectly categorized grocery item
+          final defaultUnit = IngredientSanitizer.guessDefaultUnit(cleanName);
+          final category = IngredientSanitizer.guessCategory(cleanName);
+
+          _allItems.add(
             GroceryItem(
-              id: snap.id,
-              nameEn: snap.nameEn,
-              nameHi: snap.nameHi,
-              category: snap.category,
-              availableUnits: [snap.selectedUnit, '100 g', '250 g', '500 g', '1 kg'],
-              selectedUnit: snap.selectedUnit,
-              quantity: snap.quantity,
+              id: 'missing_${DateTime.now().millisecondsSinceEpoch}_${cleanName.hashCode}',
+              nameEn: cleanName,
+              nameHi: cleanName,
+              category: category,
+              availableUnits: [defaultUnit, '500 g', '1 kg'],
+              selectedUnit: defaultUnit,
               isAdded: true,
-              isChecked: false,
+              quantity: 1,
             ),
           );
+          addedCount++;
         }
       }
     });
 
+    if (addedCount > 0) {
+      NeonDbService.syncInventoryToCloud(_allItems);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added $addedCount missing ingredient${addedCount > 1 ? 's' : ''} to your Shop Cart!'),
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+    }
+  }
+
+  void _stockPurchasedItemsToPantry(List<GroceryItem> purchasedItems) {
+    if (purchasedItems.isEmpty) return;
+
+    final userId = _userProfile['id'];
+
+    setState(() {
+      for (final item in purchasedItems) {
+        // 1. Match with existing items in pantry by name or ID
+        final existingPantryIdx = _pantryItems.indexWhere((p) =>
+            p.name.trim().toLowerCase() == item.nameEn.trim().toLowerCase() ||
+            p.name.trim().toLowerCase() == item.nameHi.trim().toLowerCase() ||
+            p.id == item.id);
+
+        if (existingPantryIdx != -1) {
+          _pantryItems[existingPantryIdx].quantity += item.quantity > 0 ? item.quantity : 1;
+          _pantryItems[existingPantryIdx].isLowStock = false;
+          NeonDbService.upsertPantryItemInCloud(_pantryItems[existingPantryIdx], userId: userId);
+        } else {
+          final newPantry = PantryItem(
+            id: 'pantry_${DateTime.now().microsecondsSinceEpoch}_${item.id}_${_pantryItems.length}',
+            name: item.nameEn,
+            category: item.category,
+            unit: item.selectedUnit.isNotEmpty ? item.selectedUnit : '1 Pack',
+            quantity: item.quantity > 0 ? item.quantity : 1,
+            isLowStock: false,
+          );
+          _pantryItems.insert(0, newPantry);
+          NeonDbService.upsertPantryItemInCloud(newPantry, userId: userId);
+        }
+
+        // 2. Clear item from active shopping cart in _allItems
+        final allIdx = _allItems.indexWhere((i) => i.id == item.id);
+        if (allIdx != -1) {
+          _allItems[allIdx] = _allItems[allIdx].copyWith(isAdded: false, isChecked: false, quantity: 1);
+        }
+      }
+    });
+
+    NeonDbService.syncInventoryToCloud(_allItems, userId: userId);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: const Color(0xFF10B981),
-        content: Text(
-          'Restock list loaded from "${template.name}"',
-          style: GoogleFonts.spaceGrotesk(fontSize: 14, color: Colors.white),
+        backgroundColor: AppColors.primary,
+        behavior: SnackBarBehavior.floating,
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Stocked ${purchasedItems.length} purchased items to your Kitchen Pantry!',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _deleteTemplate(SavedListTemplate template) {
-    setState(() {
-      _savedTemplates.removeWhere((t) => t.id == template.id);
-    });
-  }
-
-  void _showAddCustomItemDialog() {
-    final nameEnController = TextEditingController();
-    final nameHiController = TextEditingController();
-    ItemCategory selectedCategory = ItemCategory.singleSpices;
-
-    showDialog(
+  void _showCartSheet() {
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              title: Text(
-                'Add Custom Item',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameEnController,
-                      style: GoogleFonts.spaceGrotesk(fontSize: 14, color: const Color(0xFF0F172A)),
-                      decoration: InputDecoration(
-                        labelText: 'Item Name (English)',
-                        labelStyle: GoogleFonts.spaceGrotesk(fontSize: 13, color: const Color(0xFF64748B)),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: nameHiController,
-                      style: GoogleFonts.spaceGrotesk(fontSize: 14, color: const Color(0xFF0F172A)),
-                      decoration: InputDecoration(
-                        labelText: 'Hindi / Local Name (Optional)',
-                        labelStyle: GoogleFonts.spaceGrotesk(fontSize: 13, color: const Color(0xFF64748B)),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<ItemCategory>(
-                      initialValue: selectedCategory,
-                      decoration: InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: GoogleFonts.spaceGrotesk(fontSize: 13, color: const Color(0xFF64748B)),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: ItemCategory.values.where((c) => c != ItemCategory.all).map((cat) {
-                        return DropdownMenuItem(
-                          value: cat,
-                          child: Text(
-                            cat.label,
-                            style: GoogleFonts.spaceGrotesk(fontSize: 14),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setDialogState(() => selectedCategory = val);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.spaceGrotesk(fontSize: 14, color: const Color(0xFF64748B)),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  ),
-                  onPressed: () {
-                    final nameEn = nameEnController.text.trim();
-                    if (nameEn.isEmpty) return;
-
-                    final newItem = GroceryItem(
-                      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-                      nameEn: nameEn,
-                      nameHi: nameHiController.text.trim().isEmpty ? nameEn : nameHiController.text.trim(),
-                      category: selectedCategory,
-                      availableUnits: ['100 g', '250 g', '500 g', '1 kg', '1 Pack'],
-                      selectedUnit: '250 g',
-                      isAdded: true,
-                    );
-
-                    setState(() {
-                      _allItems.insert(0, newItem);
-                    });
-
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Add to List',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            );
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: ShoppingListDrawer(
+          items: _allItems,
+          onToggleCheck: (item) {
+            setState(() {
+              final idx = _allItems.indexWhere((i) => i.id == item.id);
+              if (idx != -1) {
+                _allItems[idx] = _allItems[idx].copyWith(isChecked: !_allItems[idx].isChecked);
+              }
+            });
+            NeonDbService.syncInventoryToCloud(_allItems);
           },
-        );
-      },
-    );
-  }
-
-  void _openSavedTemplatesModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return FractionallySizedBox(
-          heightFactor: 0.80,
-          child: SavedTemplatesModal(
-            templates: _savedTemplates,
-            onUseTemplate: _reorderTemplate,
-            onDeleteTemplate: _deleteTemplate,
-          ),
-        );
-      },
-    );
-  }
-
-  void _openShoppingListDrawer() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return FractionallySizedBox(
-          heightFactor: 0.85,
-          child: ShoppingListDrawer(
-            items: _allItems,
-            onToggleCheck: _toggleCheck,
-            onUpdateQuantity: _updateItemQuantity,
-            onRemove: _toggleItemAdded,
-            onClearAll: _clearAllList,
-            onSaveAsTemplate: _saveCurrentListAsTemplate,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildItemCard(GroceryItem item) {
-    final isLocked = item.isChecked;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isLocked ? const Color(0xFFF1F5F9) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isLocked
-              ? const Color(0xFFCBD5E1)
-              : (item.isAdded ? const Color(0xFF10B981) : const Color(0xFFE2E8F0)),
-          width: item.isAdded ? 2 : 1,
+          onUpdateQuantity: _updateItemQuantity,
+          onRemove: (item) {
+            setState(() {
+              final idx = _allItems.indexWhere((i) => i.id == item.id);
+              if (idx != -1) {
+                _allItems[idx] = _allItems[idx].copyWith(isAdded: false, isChecked: false);
+              }
+            });
+            NeonDbService.syncInventoryToCloud(_allItems);
+          },
+          onClearAll: () {
+            setState(() {
+              for (var i = 0; i < _allItems.length; i++) {
+                if (_allItems[i].isAdded) {
+                  _allItems[i] = _allItems[i].copyWith(isAdded: false, isChecked: false, quantity: 1);
+                }
+              }
+            });
+            NeonDbService.syncInventoryToCloud(_allItems);
+          },
+          onSaveAsTemplate: (name) {
+            final added = _allItems.where((i) => i.isAdded).toList();
+            final newTemplate = SavedListTemplate(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              name: name,
+              createdAt: DateTime.now(),
+              items: added.map((i) => ItemSnapshot(id: i.id, nameEn: i.nameEn, nameHi: i.nameHi, category: i.category, selectedUnit: i.selectedUnit, quantity: i.quantity)).toList(),
+            );
+            setState(() => _savedTemplates.add(newTemplate));
+            NeonDbService.syncTemplateToCloud(newTemplate);
+          },
+          onConfirmPurchaseAndStock: _stockPurchasedItemsToPantry,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Category Badge & Lock Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: item.accentColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  item.category.label.split(' ').first,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 12, // >= 12px
-                    fontWeight: FontWeight.w700,
-                    color: item.accentColor,
-                  ),
-                ),
+    );
+  }
+
+  void _showReceiptImporterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ReceiptImporterModal(
+        inventory: _allItems,
+        onImportItems: (importedItems) {
+          setState(() {
+            for (final item in importedItems) {
+              final existingPantryIdx = _pantryItems.indexWhere(
+                (p) => p.name.toLowerCase() == item.nameEn.toLowerCase() || p.id == item.id,
+              );
+              if (existingPantryIdx != -1) {
+                _pantryItems[existingPantryIdx].quantity += item.quantity > 0 ? item.quantity : 1;
+                NeonDbService.upsertPantryItemInCloud(_pantryItems[existingPantryIdx]);
+              } else {
+                final newPantry = PantryItem(
+                  id: 'pantry_${DateTime.now().microsecondsSinceEpoch}_${item.id}_${_pantryItems.length}',
+                  name: item.nameEn,
+                  category: item.category,
+                  unit: item.selectedUnit,
+                  quantity: item.quantity > 0 ? item.quantity : 1,
+                );
+                _pantryItems.insert(0, newPantry);
+                NeonDbService.upsertPantryItemInCloud(newPantry);
+              }
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  void _showUserProfileModal() {
+    final fullName = _userProfile['fullName'] ?? 'Chef';
+    final email = _userProfile['email'] ?? 'Account';
+    // final household = _userProfile['householdName'] ?? 'My Kitchen';
+    final photoUrl = _userProfile['photoUrl'];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              if (isLocked)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+            ),
+
+            // Profile Header
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                  child: photoUrl == null || photoUrl.isEmpty
+                      ? Text(
+                          fullName.isNotEmpty ? fullName[0].toUpperCase() : 'K',
+                          style: const TextStyle(
+                            fontFamily: 'Funnel Display',
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF059669),
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.lock_rounded, size: 12, color: Color(0xFF475569)),
-                      const SizedBox(width: 2),
                       Text(
-                        'LOCKED',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 12, // >= 12px
+                        fullName,
+                        style: const TextStyle(
+                          fontFamily: 'Funnel Display',
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF475569),
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        email,
+                        style: const TextStyle(
+                          fontFamily: 'Funnel Display',
+                          fontSize: 13,
+                          color: Color(0xFF64748B),
                         ),
                       ),
                     ],
                   ),
-                )
-              else if (item.isAdded)
-                const Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF10B981),
-                  size: 18,
                 ),
-            ],
-          ),
-
-          const SizedBox(height: 6),
-
-          // English Name (14px)
-          Text(
-            item.nameEn,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: isLocked ? const Color(0xFF64748B) : const Color(0xFF0F172A),
-              height: 1.15,
-              decoration: isLocked ? TextDecoration.lineThrough : null,
+              ],
             ),
-          ),
 
-          const SizedBox(height: 2),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 16),
 
-          // Hindi / Local Name (12px)
-          Text(
-            item.nameHi,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 12, // Strictly >= 12px
-              fontWeight: FontWeight.w500,
-              color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            // DIETARY PREFERENCE SELECTOR (Personalization)
+            StatefulBuilder(
+              builder: (context, setProfileModalState) {
+                String currentDiet = _userProfile['dietPreference'] ?? 'Veg';
+                String currentSize = _userProfile['householdSize'] ?? '2';
+
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: AppRadii.lgBorder,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'DIETARY PREFERENCE',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              currentDiet,
+                              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: ['Veg', 'Non-Veg', 'Jain', 'Eggetarian', 'Vegan'].map((diet) {
+                          final isSel = currentDiet == diet;
+                          return TactileTap(
+                            onTap: () async {
+                              setProfileModalState(() {
+                                currentDiet = diet;
+                              });
+                              setState(() {
+                                _userProfile['dietPreference'] = diet;
+                              });
+                              await AuthService.updatePersonalization(
+                                dietPreference: diet,
+                                householdSize: currentSize,
+                                appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
+                                exclusions: _userProfile['exclusions'] ?? '',
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: isSel ? AppColors.primary : AppColors.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: isSel ? AppColors.primary : AppColors.border),
+                              ),
+                              child: Text(
+                                diet,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isSel ? Colors.white : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Household Size
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'HOUSEHOLD MEMBERS',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                TactileTap(
+                                  onTap: () async {
+                                    final currentVal = int.tryParse(currentSize) ?? 2;
+                                    if (currentVal > 1) {
+                                      final newVal = '${currentVal - 1}';
+                                      setProfileModalState(() => currentSize = newVal);
+                                      setState(() => _userProfile['householdSize'] = newVal);
+                                      await AuthService.updatePersonalization(
+                                        dietPreference: currentDiet,
+                                        householdSize: newVal,
+                                        appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
+                                        exclusions: _userProfile['exclusions'] ?? '',
+                                      );
+                                    }
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    child: Icon(Icons.remove_rounded, size: 16, color: AppColors.textPrimary),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  child: Text(
+                                    currentSize == '1' ? '1 Person' : '$currentSize People',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                                  ),
+                                ),
+                                TactileTap(
+                                  onTap: () async {
+                                    final currentVal = int.tryParse(currentSize) ?? 2;
+                                    final newVal = '${currentVal + 1}';
+                                    setProfileModalState(() => currentSize = newVal);
+                                    setState(() => _userProfile['householdSize'] = newVal);
+                                    await AuthService.updatePersonalization(
+                                      dietPreference: currentDiet,
+                                      householdSize: newVal,
+                                      appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
+                                      exclusions: _userProfile['exclusions'] ?? '',
+                                    );
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    child: Icon(Icons.add_rounded, size: 16, color: AppColors.textPrimary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          ),
 
-          const SizedBox(height: 6),
+            const SizedBox(height: 12),
 
-          // Unit Selector Pill (Disabled if Locked)
-          Opacity(
-            opacity: isLocked ? 0.6 : 1.0,
-            child: Container(
-              height: 28,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: DropdownButton<String>(
-                    value: item.availableUnits.contains(item.selectedUnit)
-                        ? item.selectedUnit
-                        : item.availableUnits.first,
-                    isDense: true,
-                    isExpanded: false,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF64748B)),
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 12, // >= 12px
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF334155),
+            // Stats row
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.border),
                     ),
-                    onChanged: isLocked
-                        ? null
-                        : (newUnit) {
-                            if (newUnit != null) {
-                              _updateItemUnit(item, newUnit);
-                            }
-                          },
-                    items: item.availableUnits.map((u) {
-                      return DropdownMenuItem(
-                        value: u,
-                        child: Text(
-                          u,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_pantryItems.length}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryDark,
+                          ),
                         ),
-                      );
-                    }).toList(),
+                        const Text(
+                          'In Stock Items',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_savedRecipes.length}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.accentBlue,
+                          ),
+                        ),
+                        const Text(
+                          'Saved Recipes',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Log out button
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: TactileTap(
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await AuthService.logout();
+                  if (mounted) {
+                    Navigator.of(context).pushReplacementNamed('/auth');
+                  }
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.6)),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Log Out',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.danger,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Action Button / Stepper (Disabled if Locked)
-          Opacity(
-            opacity: isLocked ? 0.6 : 1.0,
-            child: SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: item.isAdded
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              iconSize: 18,
-                              padding: const EdgeInsets.symmetric(horizontal: 2),
-                              icon: const Icon(Icons.remove, color: Colors.white),
-                              onPressed: isLocked ? null : () => _updateItemQuantity(item, item.quantity - 1),
-                            ),
-                            Text(
-                              '${item.quantity}',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            IconButton(
-                              iconSize: 18,
-                              padding: const EdgeInsets.symmetric(horizontal: 2),
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              onPressed: isLocked ? null : () => _updateItemQuantity(item, item.quantity + 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF10B981), width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.zero,
-                      ),
-                      icon: const Icon(Icons.add, size: 18, color: Color(0xFF059669)),
-                      label: Text(
-                        'ADD',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 13, // >= 12px
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: const Color(0xFF059669),
-                        ),
-                      ),
-                      onPressed: isLocked ? null : () => _toggleItemAdded(item),
-                    ),
-            ),
-          ),
-        ],
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
 
+  String get _currentAppBarTitle {
+    switch (_activeTabIndex) {
+      case 0:
+        return 'Chef';
+      case 1:
+        return 'Meal Calendar';
+      case 2:
+        return 'Kitchen Inventory';
+      case 3:
+        return 'Saved Recipes';
+      case 4:
+        return 'Grocery Catalog';
+      default:
+        return 'Meal Calendar';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final itemsToDisplay = _filteredItems;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
+      /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        titleSpacing: 16,
+        scrolledUnderElevation: 0,
+        title: Row(
+      */
+      /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      */
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Image.asset(
-                'assets/images/logo.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.shopping_basket_rounded,
-                  color: Color(0xFF10B981),
-                  size: 20,
-                ),
-              ),
+            const KichookLogo(
+              size: 32,
+              withContainer: true,
             ),
             const SizedBox(width: 10),
             Text(
-              'KICHOOK',
+              _currentAppBarTitle,
               style: GoogleFonts.spaceGrotesk(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
                 color: const Color(0xFF0F172A),
               ),
             ),
           ],
         ),
         actions: [
-          // Saved Templates / Reorder Button
+          /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
           IconButton(
-            tooltip: 'Saved Templates',
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.history_rounded, color: Color(0xFFD97706), size: 22),
-                ),
-                if (_savedTemplates.isNotEmpty)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFD97706),
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                      child: Center(
-                        child: Text(
-                          '${_savedTemplates.length}',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            onPressed: _openSavedTemplatesModal,
+            icon: const Icon(Icons.account_circle_rounded, color: Color(0xFF10B981), size: 26),
+            tooltip: 'My Profile',
+            onPressed: _showUserProfileModal,
           ),
+          */
           IconButton(
-            tooltip: 'Add Custom Item',
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add_rounded, color: Color(0xFF059669), size: 22),
-            ),
-            onPressed: _showAddCustomItemDialog,
+            icon: const Icon(Icons.account_circle_rounded, color: AppColors.primary, size: 26),
+            tooltip: 'My Profile',
+            onPressed: _showUserProfileModal,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
       ),
-      body: Column(
+      /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+      body: Stack(
+      */
+      body: TexturedBackground(
+        child: Stack(
         children: [
-          // Search Bar
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val),
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 14, // >= 12px
-                color: const Color(0xFF0F172A),
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search Jeera, Haldi, Dhania, Milk...',
-                hintStyle: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  color: const Color(0xFF94A3B8),
+          IndexedStack(
+            index: _activeTabIndex,
+            children: [
+              _buildMealPlannerTab(),
+              _buildCalendarTab(),
+              _buildPantryTab(),
+              _buildSavedRecipesTab(),
+              _buildShopTab(),
+            ],
+          ),
+          // Global Floating Cart Banner (Visible across all tabs when items exist)
+          if (_totalShoppingListCount > 0)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: GestureDetector(
+                onTap: _showCartSheet,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.25),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$_totalShoppingListCount Items in Cart',
+                              style: const TextStyle(
+                                fontFamily: 'Funnel Display',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const Text(
+                              'Tap to view restock list & export',
+                              style: TextStyle(
+                                fontFamily: 'Funnel Display',
+                                fontSize: 11,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Text(
+                        'VIEW CART ➔',
+                        style: TextStyle(
+                          fontFamily: 'Funnel Display',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+                          color: Color(0xFF10B981),
+                          */
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF64748B), size: 22),
-                suffixIcon: _searchQuery.isNotEmpty
+              ),
+            ),
+          /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+          ],
+        ),
+        bottomNavigationBar: Container(
+          */
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _activeTabIndex,
+          onTap: (index) => setState(() => _activeTabIndex = index),
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 10.5),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10.5),
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.auto_awesome_rounded),
+              label: 'Chef',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month_rounded),
+              label: 'Calendar',
+            ),
+            BottomNavigationBarItem(
+              icon: Badge(
+                label: Text('${_pantryItems.length}'),
+                isLabelVisible: _pantryItems.isNotEmpty,
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.kitchen_rounded),
+              ),
+              label: 'Inventory',
+            ),
+            BottomNavigationBarItem(
+              icon: Badge(
+                label: Text('${_savedRecipes.length}'),
+                isLabelVisible: _savedRecipes.isNotEmpty,
+                backgroundColor: AppColors.warning,
+                child: const Icon(Icons.bookmark_rounded),
+              ),
+              label: 'Recipes',
+            ),
+            BottomNavigationBarItem(
+              icon: Badge(
+                label: Text('$_totalShoppingListCount'),
+                isLabelVisible: _totalShoppingListCount > 0,
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.shopping_cart_rounded),
+              ),
+              label: 'Shop',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // TAB: 📅 MEAL CALENDAR
+  // ==========================================
+  Widget _buildCalendarTab() {
+    return MealCalendarScreen(
+      pantryItems: _pantryItems,
+      allCatalogItems: _allItems,
+      savedRecipes: _savedRecipes,
+      onAddMissingToCart: _addMissingRecipeItemsToShoppingList,
+      onMealCooked: (recipe) {
+        _stockCookedRecipeDepletion(recipe);
+      },
+    );
+  }
+
+  // Legacy simple name matching commented out:
+  // void _stockCookedRecipeDepletion(MealRecipe recipe) {
+  //   for (final ing in recipe.ingredientsWithQuantities) { ... }
+  // }
+
+  void _stockCookedRecipeDepletion(MealRecipe recipe) {
+    final List<String> deductedNames = [];
+
+    setState(() {
+      final targetIngredients = <String>{};
+
+      // 1. Collect clean ingredient names from usedInventory
+      for (final used in recipe.usedInventory) {
+        if (used.trim().isNotEmpty) {
+          targetIngredients.add(used.toLowerCase().trim());
+        }
+      }
+
+      // 2. Collect clean ingredient names from ingredientsWithQuantities
+      for (final ing in recipe.ingredientsWithQuantities) {
+        final clean = IngredientSanitizer.cleanIngredientName(ing).toLowerCase().trim();
+        if (clean.isNotEmpty && !IngredientSanitizer.isUniversalFreeItem(clean)) {
+          targetIngredients.add(clean);
+        }
+      }
+
+      // 3. Deduct stock for all matched pantry items
+      for (final targetName in targetIngredients) {
+        final targetCanonical = CanonicalItemMatcher.getCanonicalKey(targetName);
+
+        final matchIdx = _pantryItems.indexWhere((p) {
+          final pName = p.name.toLowerCase().trim();
+          final pCanonical = CanonicalItemMatcher.getCanonicalKey(pName);
+          return pName == targetName ||
+              pName.contains(targetName) ||
+              targetName.contains(pName) ||
+              (pCanonical.isNotEmpty && pCanonical == targetCanonical);
+        });
+
+        if (matchIdx != -1) {
+          final item = _pantryItems[matchIdx];
+          final newQty = item.quantity > 1 ? item.quantity - 1 : 0;
+          final updatedItem = item.copyWith(
+            quantity: newQty,
+            isLowStock: newQty <= 1,
+          );
+          _pantryItems[matchIdx] = updatedItem;
+          deductedNames.add(item.name);
+          Future.microtask(() => NeonDbService.upsertPantryItemInCloud(updatedItem));
+        }
+      }
+    });
+
+    if (mounted && deductedNames.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.textPrimary,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            '🍳 Cooked "${recipe.dishName}"! Deducted stock for: ${deductedNames.take(3).join(", ")}',
+            style: const TextStyle(fontSize: 13, color: Colors.white),
+          ),
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // TAB 1: 🍽️ MEAL PLANNER (FULL FEATURED SCREEN)
+  // ==========================================
+  Widget _buildMealPlannerTab() {
+    // Pass strictly the user's actual stocked ingredients to AI Chef
+    final stockedPantryGroceryItems = _pantryItems.map((p) => GroceryItem(
+      id: p.id,
+      nameEn: p.name,
+      nameHi: p.name,
+      category: p.category,
+      availableUnits: [p.unit],
+      selectedUnit: p.unit,
+      quantity: p.quantity,
+      isAdded: true,
+    )).toList();
+
+    return MealPlannerScreen(
+      inventory: stockedPantryGroceryItems,
+      onAddMissingItemsToList: _addMissingRecipeItemsToShoppingList,
+      onViewSavedPresets: () => setState(() => _activeTabIndex = 2),
+      onMealCooked: (recipe) => _stockCookedRecipeDepletion(recipe),
+      onSaveRecipe: (recipe) {
+        setState(() {
+          _savedRecipes.add(recipe);
+        });
+        Future.microtask(() => NeonDbService.syncSavedRecipeToCloud(recipe));
+      },
+    );
+  }
+
+  // ==========================================
+  // TAB 2: 📦 KITCHEN PANTRY
+  // ==========================================
+  Widget _buildPantryTab() {
+    return PantryInventoryModal(
+      pantryItems: _pantryItems,
+      isLoading: _isPantryLoading,
+      onOpenReceiptScanner: _showReceiptImporterSheet,
+      onAddPantryItem: (newItem) {
+        setState(() => _pantryItems.insert(0, newItem));
+        NeonDbService.upsertPantryItemInCloud(newItem);
+      },
+      onUpdatePantryItem: (updatedItem) {
+        setState(() {
+          final idx = _pantryItems.indexWhere((p) => p.id == updatedItem.id);
+          if (idx != -1) {
+            _pantryItems[idx] = updatedItem;
+          }
+        });
+        NeonDbService.upsertPantryItemInCloud(updatedItem);
+      },
+      onUpdatePantryQuantity: (item, newQty) {
+        setState(() {
+          final idx = _pantryItems.indexWhere((p) => p.id == item.id);
+          if (idx != -1) {
+            if (newQty <= 0) {
+              _pantryItems.removeAt(idx);
+              NeonDbService.deletePantryItemFromCloud(item.id);
+            } else {
+              _pantryItems[idx].quantity = newQty;
+              NeonDbService.upsertPantryItemInCloud(_pantryItems[idx]);
+            }
+          }
+        });
+      },
+      onDeletePantryItem: (item) {
+        setState(() => _pantryItems.removeWhere((p) => p.id == item.id));
+        NeonDbService.deletePantryItemFromCloud(item.id);
+      },
+      onPushToRestockList: (item) {
+        setState(() {
+          final matchIdx = IngredientSanitizer.findMatchingItemIndex(item.name, _allItems);
+          if (matchIdx != -1) {
+            _allItems[matchIdx] = _allItems[matchIdx].copyWith(
+              isAdded: true,
+              quantity: _allItems[matchIdx].isAdded && _allItems[matchIdx].quantity > 0 ? _allItems[matchIdx].quantity : 1,
+            );
+          } else {
+            _allItems.add(
+              GroceryItem(
+                id: 'pantry_restock_${DateTime.now().millisecondsSinceEpoch}_${item.id}',
+                nameEn: item.name,
+                nameHi: item.name,
+                category: item.category,
+                availableUnits: [item.unit.isNotEmpty ? item.unit : '1 Pack', '1 kg', '500 g'],
+                selectedUnit: item.unit.isNotEmpty ? item.unit : '1 Pack',
+                isAdded: true,
+                quantity: 1,
+              ),
+            );
+          }
+        });
+        NeonDbService.syncInventoryToCloud(_allItems);
+      },
+    );
+  }
+
+  // ==========================================
+  // TAB 3: 📖 SAVED RECIPES & COOKBOOKS
+  // ==========================================
+  Widget _buildSavedRecipesTab() {
+    return SavedRecipesModal(
+      initialRecipes: _savedRecipes,
+      onDeleteRecipe: (recipe) {
+        setState(() => _savedRecipes.removeWhere((r) => r.id == recipe.id));
+      },
+      onDeductCookedIngredients: (recipe) {
+        _stockCookedRecipeDepletion(recipe.toMealRecipe);
+      },
+      onAddMissingItemsToCart: (missingItems) {
+        _addMissingRecipeItemsToShoppingList(missingItems);
+      },
+      onExploreMealPlanner: () {
+        setState(() => _activeTabIndex = 0);
+      },
+    );
+  }
+
+  // ==========================================
+  // TAB 4: 🛒 SHOP TAB (AIRBNB-STYLED 2-COLUMN CARDS WITH ROBUST UNIT SELECTOR)
+  // ==========================================
+  Widget _buildShopTab() {
+    final shopItems = _filteredShopItems;
+
+    return Column(
+      children: [
+        // Top Search Input
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          child: SizedBox(
+            height: 42,
+            child: TextField(
+              controller: _shopSearchController,
+              onChanged: (val) => setState(() => _shopSearchQuery = val),
+              style: const TextStyle(fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Search items in Shop (e.g. Rice, Haldi, Milk)...',
+                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
+                suffixIcon: _shopSearchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 20, color: Color(0xFF94A3B8)),
+                        icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.textSecondary),
                         onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
+                          setState(() {
+                            _shopSearchController.clear();
+                            _shopSearchQuery = '';
+                          });
                         },
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFFF1F5F9),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+                fillColor: AppColors.surface,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: const OutlineInputBorder(
+                  borderRadius: AppRadii.mdBorder,
+                  borderSide: BorderSide(color: AppColors.border),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderRadius: AppRadii.mdBorder,
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
               ),
             ),
           ),
+        ),
 
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+        const Divider(height: 1, color: AppColors.border),
 
-          // Main Content: Left Sidebar + Right Item Grid
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        // Main Body: Left Category Sidebar + Right 2-Column Product Grid
+        Expanded(
+          child: Row(
+            children: [
+              // Left Vertical Category Sidebar
+              Container(
+                width: 82,
+                color: AppColors.surface,
+                child: ListView.builder(
+                  itemCount: ItemCategory.values.length,
+                  itemBuilder: (context, index) {
+                    final cat = ItemCategory.values[index];
+                    final isSelected = _selectedShopCategory == cat;
+
+                    return TactileTap(
+                      onTap: () => setState(() => _selectedShopCategory = cat),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 140),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primaryLight : Colors.transparent,
+                          border: Border(
+                            left: BorderSide(
+                              color: isSelected ? AppColors.primary : Colors.transparent,
+                              width: 3.5,
+                            ),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              cat.icon,
+                              size: 18,
+                              color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              cat.label,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const VerticalDivider(width: 1, color: AppColors.border),
+
+              // Right 2-Column Airbnb-styled Product Grid
+              Expanded(
+                child: shopItems.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.search_off_rounded, size: 36, color: AppColors.textMuted),
+                            SizedBox(height: 8),
+                            Text('No items found in category', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          ],
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.64,
+                        ),
+                        itemCount: shopItems.length,
+                        itemBuilder: (context, index) {
+                          final item = shopItems[index];
+                          return _buildAirbnbShopCard(item);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // AIRBNB-STYLED GROCERY CARD (Clean, Tactile, Zero Dropdown Crashes)
+  // ==========================================
+  Widget _buildAirbnbShopCard(GroceryItem item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadii.lgBorder,
+        border: Border.all(color: item.isAdded ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border),
+        boxShadow: AppShadows.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Hero Image / Media Area with subtle 1px ambient outline
+          Container(
+            height: 76,
+            margin: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: item.accentColor.withValues(alpha: 0.12),
+              borderRadius: AppRadii.mdBorder,
+            ),
+            child: Stack(
               children: [
-                // LEFT CATEGORY SIDEBAR
-                Container(
-                  width: 90,
-                  color: Colors.white,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: ItemCategory.values.length,
-                    itemBuilder: (context, index) {
-                      final cat = ItemCategory.values[index];
-                      final isSelected = _selectedCategory == cat;
-                      final count = _getCategoryCount(cat);
+                Center(
+                  child: item.imagePath != null
+                      ? ClipRRect(
+                          borderRadius: AppRadii.mdBorder,
+                          child: Image.asset(
+                            item.imagePath!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (_, __, ___) => _buildCenteredTextTile(item),
+                          ),
+                        )
+                      : _buildCenteredTextTile(item),
+                ),
+                // Top Right In-Cart Indicator Dot or Pill
+                if (item.isAdded)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: AppShadows.soft,
+                      ),
+                      child: Text(
+                        '${item.quantity} in list',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
 
-                      return InkWell(
-                        onTap: () => setState(() => _selectedCategory = cat),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF10B981).withValues(alpha: 0.08) : Colors.transparent,
-                            border: Border(
-                              left: BorderSide(
-                                color: isSelected ? const Color(0xFF10B981) : Colors.transparent,
-                                width: 4,
+          // 2. Card Content (Names & Safe Unit Pill)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.nameEn,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        item.nameHi,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // 3. Robust Airbnb-style Unit Selector Pill (Zero Dropdown Assertion Errors)
+                  TactileTap(
+                    onTap: () {
+                      final units = item.availableUnits.toSet().toList();
+                      if (units.isNotEmpty) {
+                        final currentIdx = units.indexOf(item.selectedUnit);
+                        final nextIdx = (currentIdx + 1) % units.length;
+                        setState(() {
+                          item.selectedUnit = units[nextIdx];
+                        });
+                      }
+                    },
+                    child: Container(
+                      height: 24,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceMuted,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.selectedUnit,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Icon(
-                                    cat.icon,
-                                    size: 24,
-                                    color: isSelected
-                                        ? const Color(0xFF059669)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                  if (count > 0)
-                                    Positioned(
-                                      right: -8,
-                                      top: -6,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF10B981),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                        child: Center(
-                                          child: Text(
-                                            '$count',
-                                            style: GoogleFonts.spaceGrotesk(
-                                              fontSize: 12, // >= 12px
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                cat.label,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 12, // Strictly >= 12px
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                  color: isSelected
-                                      ? const Color(0xFF059669)
-                                      : const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                          const Icon(Icons.swap_vert_rounded, size: 13, color: AppColors.textSecondary),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
 
-                const VerticalDivider(width: 1, color: Color(0xFFE2E8F0)),
-
-                // RIGHT PRODUCT CARDS GRID (DYNAMIC INTRINSIC HEIGHT ROWS)
-                Expanded(
-                  child: itemsToDisplay.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.search_off_rounded,
-                                size: 48,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No matching items found',
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF10B981),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                icon: const Icon(Icons.add, size: 18, color: Colors.white),
-                                label: Text(
-                                  'Add Custom Item',
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onPressed: _showAddCustomItemDialog,
-                              ),
-                            ],
+                  // 4. ADD / Stepper Button with Tactile Scale (0.96)
+                  if (!item.isAdded)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 28,
+                      child: TactileTap(
+                        onTap: () => _toggleItemAdded(item),
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: AppShadows.soft,
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(10),
-                          itemCount: (itemsToDisplay.length / 2).ceil(),
-                          itemBuilder: (context, rowIndex) {
-                            final firstIndex = rowIndex * 2;
-                            final secondIndex = firstIndex + 1;
-                            final item1 = itemsToDisplay[firstIndex];
-                            final hasSecond = secondIndex < itemsToDisplay.length;
-                            final item2 = hasSecond ? itemsToDisplay[secondIndex] : null;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: IntrinsicHeight(
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(child: _buildItemCard(item1)),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: hasSecond
-                                          ? _buildItemCard(item2!)
-                                          : const SizedBox.shrink(),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                          child: const Text(
+                            '+ ADD',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
                         ),
-                ),
-              ],
+                      ),
+                    )
+                  else
+                    Container(
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryDark,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TactileTap(
+                            onTap: () => _updateItemQuantity(item, item.quantity - 1),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Icon(Icons.remove_rounded, color: Colors.white, size: 14),
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${item.quantity}',
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          TactileTap(
+                            onTap: () => _updateItemQuantity(item, item.quantity + 1),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Icon(Icons.add_rounded, color: Colors.white, size: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
 
-      // BOTTOM FLOATING LIST BAR
-      bottomNavigationBar: _totalAddedCount > 0
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 17),
-                child: InkWell(
-                  onTap: _openShoppingListDrawer,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    height: 60,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.shopping_basket_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'MY LIST ($_totalAddedCount ITEMS)',
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 14, // >= 12px
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                'Tap to view checklist & shop',
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 12, // >= 12px
-                                  color: const Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'VIEW LIST',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF10B981),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 14,
-                              color: Color(0xFF10B981),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+  // Centered Text Tile Helper for Items without photos
+  Widget _buildCenteredTextTile(GroceryItem item) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.category.icon, color: item.accentColor, size: 22),
+            const SizedBox(height: 3),
+            Flexible(
+              child: Text(
+                item.nameEn,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  height: 1.15,
                 ),
               ),
-            )
-          : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

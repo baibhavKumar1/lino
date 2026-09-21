@@ -1,0 +1,42 @@
+{
+    "1": {
+        "psl_constant": "PHOTOS",
+        "policy_id": "data_safety_section",
+        "issue_summary": "User-Initiated Photo Upload for Receipt Scanning",
+        "severity": "IMPORTANT",
+        "files_involved": [
+            "lib\\widgets\\receipt_importer_modal.dart",
+            "lib\\services\\openrouter_service.dart"
+        ],
+        "evidence": "User selects photo via image_picker in ReceiptImporterModal and sends image bytes to OpenRouterService.analyzeReceiptImage for AI vision OCR.",
+        "recommendation": "Declare Photos & Videos collection in Google Play Store Data Safety form under App Functionality.",
+        "is_transferred": true,
+        "user_initiated": true,
+        "is_third_party": false,
+        "prominent_disclosure_status": "EXEMPT",
+        "purpose": "App functionality",
+        "linked_to_user": false,
+        "worker_file": "worker_data_safety_part_1.json",
+        "finding_id": "1"
+    },
+    "2": {
+        "psl_constant": "PURCHASE_HISTORY",
+        "policy_id": "data_safety_section",
+        "issue_summary": "User-Initiated Receipt Import & Restock List Sync",
+        "severity": "IMPORTANT",
+        "files_involved": [
+            "lib\\widgets\\receipt_importer_modal.dart",
+            "lib\\services\\neon_db_service.dart"
+        ],
+        "evidence": "Scanned receipt items are imported into shopping list and synchronized with Neon PostgreSQL Cloud DB.",
+        "recommendation": "Declare Purchase History collection in Play Console Data Safety form under App Functionality.",
+        "is_transferred": true,
+        "user_initiated": true,
+        "is_third_party": false,
+        "prominent_disclosure_status": "EXEMPT",
+        "purpose": "App functionality",
+        "linked_to_user": false,
+        "worker_file": "worker_data_safety_part_1.json",
+        "finding_id": "2"
+    }
+}

@@ -1,0 +1,68 @@
+{
+    "APP_DIR": "C:\\playground\\kichook",
+    "APP_NAME": "kichook",
+    "GOAL_NAME": "data_safety_part_2",
+    "PACKAGE_NAME": "kichook",
+    "REPO_ROOT": "C:\\Users\\hireb\\.gemini\\config\\skills\\play-policy-insights",
+    "TARGET_SDK": 35,
+    "TEMP_DIR": "C:\\playground\\kichook\\.scratch\\play_policy_insights_2ffd6f2f-ff95-4c7c-ae78-8f6c2a38201f",
+    "data_sources": {
+        "FILES_AND_DOCS": {
+            "description": "A user\u2019s files or documents, or information about their files or documents such as file names.",
+            "findings": [
+                ".dart_tool\\flutter_build\\dart_plugin_registrant.dart (Pattern: path_provider)"
+            ]
+        },
+        "PERSONAL_INFO_OTHER": {
+            "description": "Any other personal information such as date of birth, gender identity, veteran status, etc.",
+            "findings": [
+                "lib\\models\\grocery_item.dart (Pattern: dob)"
+            ]
+        },
+        "RACE_ETHNICITY": {
+            "description": "Information about a user\u2019s race or ethnicity.",
+            "findings": [
+                "lib\\screens\\splash_screen.dart (Pattern: race)"
+            ]
+        }
+    },
+    "disclosure": [
+        "lib\\screens\\home_screen.dart (Pattern: AlertDialog)",
+        "lib\\widgets\\saved_recipes_modal.dart (Pattern: AlertDialog)",
+        "lib\\widgets\\shopping_list_drawer.dart (Pattern: AlertDialog)"
+    ],
+    "found_urls": [],
+    "network_transmission": {
+        "-": [
+            "lib\\services\\openrouter_service.dart (Pattern: http.post)"
+        ]
+    },
+    "requested_permissions": {
+        "AUDIO": [
+            "android.permission.READ_EXTERNAL_STORAGE"
+        ],
+        "FILES_AND_DOCS": [
+            "android.permission.READ_EXTERNAL_STORAGE"
+        ],
+        "MEDIA": [
+            "android.permission.READ_MEDIA_IMAGES",
+            "android.permission.READ_EXTERNAL_STORAGE"
+        ],
+        "MUSIC": [
+            "android.permission.READ_EXTERNAL_STORAGE"
+        ],
+        "OTHER_AUDIO": [
+            "android.permission.READ_EXTERNAL_STORAGE"
+        ],
+        "PHOTOS": [
+            "android.permission.READ_MEDIA_IMAGES",
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.CAMERA"
+        ],
+        "VIDEOS": [
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.CAMERA"
+        ]
+    },
+    "semantic_files": {}
+}

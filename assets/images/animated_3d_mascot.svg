@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" 
+     xmlns:xlink="http://www.w3.org/1999/xlink" 
+     viewBox="0 0 540 600" 
+     width="540" 
+     height="600">
+  <defs>
+    <!-- ========================================================= -->
+    <!-- 1. 3D CLAYMORPHIC GRADIENTS (Key Light: Top-Left)         -->
+    <!-- ========================================================= -->
+
+    <!-- A. Front 3D Mint Ribbon Body -->
+    <linearGradient id="mintBodyGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#4EFAA8"/>
+      <stop offset="25%" stop-color="#14E39B"/>
+      <stop offset="65%" stop-color="#00A86B"/>
+      <stop offset="100%" stop-color="#007A4D"/>
+    </linearGradient>
+
+    <!-- B. 3D Left Extruded Depth Fold -->
+    <linearGradient id="depthFoldGrad" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#008A56"/>
+      <stop offset="50%" stop-color="#005E3A"/>
+      <stop offset="100%" stop-color="#003D24"/>
+    </linearGradient>
+
+    <!-- C. Volumetric Chef Toque Crown (Soft 3D Cloud Volume) -->
+    <radialGradient id="toqueCrownGrad" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#F8FAFC"/>
+      <stop offset="85%" stop-color="#E2E8F0"/>
+      <stop offset="100%" stop-color="#CBD5E1"/>
+    </radialGradient>
+
+    <!-- D. Cylindrical Headband Gradient -->
+    <linearGradient id="toqueBandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CBD5E1"/>
+      <stop offset="25%" stop-color="#FFFFFF"/>
+      <stop offset="65%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#CBD5E1"/>
+    </linearGradient>
+
+    <!-- E. Marshmallow White Glove Gradient -->
+    <radialGradient id="gloveGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="65%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#CBD5E1"/>
+    </radialGradient>
+
+    <!-- F. Soft Ground Ambient Shadow -->
+    <radialGradient id="groundShadowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0F172A" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#0F172A" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- ========================================================= -->
+    <!-- 2. BULLETPROOF NATIVE SPECULAR SHINE GRADIENT             -->
+    <!-- Animates x1,y1,x2,y2 via SMIL without fragile clipPath    -->
+    <!-- ========================================================= -->
+    <linearGradient id="nativeShineGrad" x1="-120%" y1="-120%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="42%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="52%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <!-- Native SMIL coordinate animation -->
+      <animate attributeName="x1" from="-120%" to="180%" dur="3.4s" repeatCount="indefinite"/>
+      <animate attributeName="y1" from="-120%" to="180%" dur="3.4s" repeatCount="indefinite"/>
+      <animate attributeName="x2" from="0%" to="300%" dur="3.4s" repeatCount="indefinite"/>
+      <animate attributeName="y2" from="0%" to="300%" dur="3.4s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    /* <![CDATA[ */
+    /* Root floating animation */
+    @keyframes mascotFloat {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-16px) rotate(1.4deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+
+    /* Ground shadow breathing */
+    @keyframes groundBreathe {
+      0% { transform: scale(1); opacity: 0.25; }
+      50% { transform: scale(0.86); opacity: 0.12; }
+      100% { transform: scale(1); opacity: 0.25; }
+    }
+
+    /* Right mitten friendly wave */
+    @keyframes mittenWave {
+      0% { transform: rotate(0deg); }
+      22% { transform: rotate(-15deg); }
+      52% { transform: rotate(14deg); }
+      78% { transform: rotate(-6deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* Radiating energy rays pulse */
+    @keyframes raysPulse {
+      0%, 100% { opacity: 0.65; transform: scale(0.96); }
+      50% { opacity: 1; transform: scale(1.10); }
+    }
+
+    .mascot-root {
+      animation: mascotFloat 3.6s cubic-bezier(0.35, 0.7, 0.1, 1) infinite;
+      transform-origin: 275px 440px;
+    }
+
+    .shadow-breathe {
+      animation: groundBreathe 3.6s cubic-bezier(0.35, 0.7, 0.1, 1) infinite;
+      transform-origin: 275px 515px;
+    }
+
+    .waving-hand {
+      animation: mittenWave 2.8s ease-in-out infinite;
+      transform-origin: 380px 270px;
+    }
+
+    .energy-rays {
+      animation: raysPulse 1.9s ease-in-out infinite;
+      transform-origin: 410px 115px;
+    }
+    /* ]]> */
+  </style>
+
+  <!-- ========================================================= -->
+  <!-- 0. GROUND CONTACT AMBIENT SHADOW                          -->
+  <!-- ========================================================= -->
+  <ellipse class="shadow-breathe" cx="275" cy="515" rx="145" ry="22" fill="url(#groundShadowGrad)"/>
+
+  <!-- ========================================================= -->
+  <!-- 1. THE SINGLE UNIFIED MASCOT CHARACTER                    -->
+  <!-- ========================================================= -->
+  <g class="mascot-root">
+
+    <!-- A. 3D EXTRUDED LEFT DEPTH FOLD -->
+    <!-- Represents the backward loop of the ribbon in 3/4 perspective -->
+    <path d="M 166 220 
+             C 166 182, 202 165, 224 165
+             L 224 438 
+             L 218 448 
+             L 166 408 
+             Z"
+          fill="url(#depthFoldGrad)"
+          stroke="#111827"
+          stroke-width="11"
+          stroke-linejoin="round"
+          stroke-linecap="round"/>
+
+    <!-- Left Fold Inner Shading -->
+    <path d="M 174 224 L 222 172 L 222 425 L 174 398 Z" fill="#003520" opacity="0.30"/>
+
+    <!-- B. FRONT 3D MINT RIBBON BODY -->
+    <path d="M 218 168 
+             C 218 165, 348 165, 348 168 
+             C 356 168, 356 180, 356 195 
+             L 356 448 
+             L 287 395 
+             L 218 448 
+             Z" 
+          fill="url(#mintBodyGrad)" 
+          stroke="#111827" 
+          stroke-width="12" 
+          stroke-linejoin="round"
+          stroke-linecap="round"/>
+
+    <!-- Front Inner Rim Specular Highlight (Claymorphic Bevel) -->
+    <path d="M 228 174 
+             C 230 171, 338 171, 344 174 
+             L 344 430 
+             L 287 384 
+             L 228 430 
+             Z" 
+          fill="none" 
+          stroke="#A7F3D0" 
+          stroke-width="4.5" 
+          stroke-linejoin="round"
+          opacity="0.80"/>
+
+    <!-- C. LEFT HAND (Resting on Hip) -->
+    <g id="left-hand-group">
+      <path d="M 182 345 Q 155 352 158 378" 
+            fill="none" 
+            stroke="#111827" 
+            stroke-width="11" 
+            stroke-linecap="round"/>
+      <ellipse cx="154" cy="378" rx="19" ry="23" 
+               fill="url(#gloveGrad)" 
+               stroke="#111827" 
+               stroke-width="10" 
+               transform="rotate(-15 154 378)"/>
+      <ellipse cx="144" cy="370" rx="7.5" ry="9" 
+               fill="url(#gloveGrad)" 
+               stroke="#111827" 
+               stroke-width="8"/>
+    </g>
+
+    <!-- D. EXPRESSIVE 3D FACE -->
+    <g id="face-group">
+      <!-- Left Eye -->
+      <rect x="252" y="272" width="13" height="26" rx="6.5" fill="#111827"/>
+      <circle cx="257" cy="279" r="3.2" fill="#FFFFFF"/>
+      <circle cx="260" cy="289" r="1.3" fill="#FFFFFF" opacity="0.8"/>
+
+      <!-- Right Eye -->
+      <rect x="306" y="268" width="13" height="26" rx="6.5" fill="#111827"/>
+      <circle cx="311" cy="275" r="3.2" fill="#FFFFFF"/>
+      <circle cx="314" cy="285" r="1.3" fill="#FFFFFF" opacity="0.8"/>
+
+      <!-- Smile Mouth -->
+      <path d="M 276 298 Q 288 314 302 296" 
+            fill="none" 
+            stroke="#111827" 
+            stroke-width="6.0" 
+            stroke-linecap="round"/>
+
+      <!-- Rosy Cheeks -->
+      <ellipse cx="244" cy="298" rx="8.5" ry="5" fill="#FF6B6B" opacity="0.45"/>
+      <ellipse cx="324" cy="294" rx="8.5" ry="5" fill="#FF6B6B" opacity="0.45"/>
+    </g>
+
+    <!-- E. CHEF TOQUE HAT (Integrated Seamlessly Onto Head) -->
+    <!-- Ambient Occlusion Drop Shadow Under Band -->
+    <ellipse cx="282" cy="165" rx="86" ry="14" fill="#003D24" opacity="0.45"/>
+
+    <!-- Puffy Billowing 3D Cloud Toque Crown (Soft Volumetric Lobes) -->
+    <path d="M 194 150 
+             C 160 130, 154 75, 202 54 
+             C 214 20, 276 12, 310 26 
+             C 346 14, 392 38, 392 78 
+             C 424 104, 412 148, 374 150 
+             Z" 
+          fill="url(#toqueCrownGrad)" 
+          stroke="#111827" 
+          stroke-width="12" 
+          stroke-linejoin="round"
+          stroke-linecap="round"/>
+
+    <!-- Subtle Volumetric Crevice Shadows -->
+    <path d="M 234 148 C 228 112, 222 78, 214 56" fill="none" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 336 148 C 342 112, 348 78, 356 56" fill="none" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Soft Cloud Highlight Accents (Top Pillowy Rim) -->
+    <path d="M 215 52 C 228 30, 275 22, 305 32" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" opacity="0.95"/>
+    <path d="M 180 72 C 172 90, 174 118, 192 135" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>
+    <path d="M 382 68 C 392 90, 390 118, 375 135" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- 3D Cylindrical Headband -->
+    <path d="M 192 146 
+             C 192 136, 376 136, 376 146 
+             L 374 172 
+             C 374 182, 194 182, 194 172 
+             Z" 
+          fill="url(#toqueBandGrad)" 
+          stroke="#111827" 
+          stroke-width="11" 
+          stroke-linejoin="round"/>
+
+    <!-- Headband Specular Highlight -->
+    <path d="M 206 148 C 238 142, 334 142, 362 148" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="4.5" 
+          stroke-linecap="round"/>
+
+    <!-- F. RAISED WAVING RIGHT HAND (Cute White 3D Mitten Glove) -->
+    <g id="right-hand-group" class="waving-hand">
+      <path d="M 352 308 C 378 298, 394 280, 398 250" 
+            fill="none" 
+            stroke="#111827" 
+            stroke-width="11" 
+            stroke-linecap="round"/>
+      <ellipse cx="408" cy="242" rx="25" ry="27" 
+               fill="url(#gloveGrad)" 
+               stroke="#111827" 
+               stroke-width="10"/>
+      <path d="M 388 252 C 376 244, 374 228, 390 230 Z" 
+            fill="url(#gloveGrad)" 
+            stroke="#111827" 
+            stroke-width="8"/>
+      <path d="M 400 216 C 414 212, 426 222, 426 235" 
+            fill="none" 
+            stroke="#111827" 
+            stroke-width="8" 
+            stroke-linecap="round"/>
+      <ellipse cx="404" cy="235" rx="8" ry="12" fill="#FFFFFF" opacity="0.6"/>
+    </g>
+
+    <!-- ========================================================= -->
+    <!-- G. HIGH-LUSTER SPECULAR SHINE SWEEP OVERLAYS              -->
+    <!-- Applied directly over shapes: 100% reliable, no clipPath  -->
+    <!-- ========================================================= -->
+    <!-- Shine on Ribbon Body -->
+    <path d="M 218 168 
+             C 218 165, 348 165, 348 168 
+             C 356 168, 356 180, 356 195 
+             L 356 448 
+             L 287 395 
+             L 218 448 
+             Z" 
+          fill="url(#nativeShineGrad)" 
+          pointer-events="none"/>
+
+    <!-- Shine on Chef Toque Crown -->
+    <path d="M 194 150 
+             C 160 130, 154 75, 202 54 
+             C 214 20, 276 12, 310 26 
+             C 346 14, 392 38, 392 78 
+             C 424 104, 412 148, 374 150 
+             Z" 
+          fill="url(#nativeShineGrad)" 
+          pointer-events="none"/>
+
+    <!-- Shine on Toque Band -->
+    <path d="M 192 146 
+             C 192 136, 376 136, 376 146 
+             L 374 172 
+             C 374 182, 194 182, 194 172 
+             Z" 
+          fill="url(#nativeShineGrad)" 
+          pointer-events="none"/>
+
+    <!-- H. SIGNATURE THREE CORAL RADIATING ENERGY RAYS -->
+    <g id="rays-group" class="energy-rays">
+      <line x1="406" y1="102" x2="430" y2="86" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+      <line x1="422" y1="130" x2="450" y2="124" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+      <line x1="416" y1="158" x2="444" y2="166" stroke="#FF6B6B" stroke-width="8.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- I. SPECULAR SPARKLE ACCENTS -->
+    <g transform="translate(230, 210)">
+      <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="#FFD700" stroke="#111827" stroke-width="1.8"/>
+    </g>
+    <g transform="translate(336, 340)">
+      <path d="M 0 -7 Q 0 0 7 0 Q 0 0 0 7 Q 0 0 -7 0 Q 0 0 0 -7 Z" fill="#FFFFFF" stroke="#111827" stroke-width="1.8"/>
+    </g>
+
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+{
+  "1": {
+    "action": "VERIFIED",
+    "confidence": "High",
+    "critic_justification": "Verified: ReceiptImporterModal uses image_picker to capture photo upon user tap and sends image to OpenRouter for AI OCR. User-initiated, exempt from prominent disclosure, must be declared in Data Safety form."
+  },
+  "2": {
+    "action": "VERIFIED",
+    "confidence": "High",
+    "critic_justification": "Verified: Scanned receipt list items are imported and stored in Neon PostgreSQL cloud DB. User-initiated, exempt from prominent disclosure, must be declared in Data Safety form."
+  }
+}
