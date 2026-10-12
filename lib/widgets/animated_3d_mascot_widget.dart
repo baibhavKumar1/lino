@@ -155,388 +155,139 @@ class _Mascot3DPainter extends CustomPainter {
     final height = size.height * 0.72;
 
     final outlinePaint = Paint()
-      ..color = const Color(0xFF111827)
+      ..color = const Color(0xFF0A2540)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.5
+      ..strokeWidth = 4.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // ==========================================
-    // 1. 3D EXTRUDED LEFT DEPTH WALL (Isometric Fold)
-    // ==========================================
-    final depthPath = Path();
-    final frontLeft = center.dx - width * 0.35;
-    final frontRight = center.dx + width * 0.45;
-    final frontTop = center.dy - height * 0.32;
-    final frontBottom = center.dy + height * 0.48;
-    final notchY = center.dy + height * 0.32;
-    final depthOffset = 30.0;
+    /* PREVIOUS CHEF CHARACTER & TOQUE HAT LOGIC - COMMENTED OUT AS PER RULE
+    // 1. 3D Extruded Left Depth Wall
+    // 2. Front 3D Mint Ribbon Face
+    // 4. Resting Left Hand (On Hip)
+    // 5. Raised Waving Right Hand
+    // 6. Expressive 3D Face (Eyes, Cheeks, Smile)
+    // 7. Unified 3D Pleated Chef Toque Hat
+    */
 
-    depthPath.moveTo(frontLeft - depthOffset, frontTop + 24);
-    depthPath.quadraticBezierTo(frontLeft - depthOffset, frontTop, frontLeft, frontTop);
-    depthPath.lineTo(frontLeft, frontBottom);
-    depthPath.lineTo(frontLeft - depthOffset, frontBottom - 18);
+    // ==========================================
+    // MODERN EDITORIAL 3D LINO BRAND EMBLEM
+    // Volumetric geometric ribbon 'L' emblem with specular shine
+    // ==========================================
+
+    final emblemLeft = center.dx - width * 0.40;
+    final emblemRight = center.dx + width * 0.40;
+    final emblemTop = center.dy - height * 0.42;
+    final emblemBottom = center.dy + height * 0.42;
+    const depthOffset = 18.0;
+
+    // 1. 3D Extruded Depth Bevel for 'L' Monogram
+    final depthPath = Path();
+    depthPath.moveTo(emblemLeft - depthOffset, emblemTop + 20);
+    depthPath.lineTo(emblemLeft, emblemTop);
+    depthPath.lineTo(emblemLeft, emblemBottom - 24);
+    depthPath.lineTo(emblemRight, emblemBottom - 24);
+    depthPath.lineTo(emblemRight - depthOffset, emblemBottom);
+    depthPath.lineTo(emblemLeft - depthOffset, emblemBottom);
     depthPath.close();
 
     final depthPaint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF008A56), Color(0xFF006C43), Color(0xFF004A2D)],
-      ).createShader(Rect.fromLTWH(frontLeft - depthOffset, frontTop, depthOffset * 2, height));
+        colors: [Color(0xFF051626), Color(0xFF0A2540), Color(0xFF003D99)],
+      ).createShader(Rect.fromLTRB(emblemLeft - depthOffset, emblemTop, emblemRight, emblemBottom));
 
     canvas.drawPath(depthPath, depthPaint);
-    canvas.drawPath(depthPath, outlinePaint);
 
-    // ==========================================
-    // 2. FRONT 3D MINT RIBBON FACE
-    // ==========================================
-    final bodyPath = Path();
-    final notchCenterX = (frontLeft + frontRight) / 2;
+    // 2. Front Volumetric 'L' Ribbon Monogram
+    final frontLPath = Path();
+    const stemWidth = 38.0;
+    const baseHeight = 36.0;
+    const radius = 14.0;
 
-    bodyPath.moveTo(frontLeft + 18, frontTop);
-    bodyPath.quadraticBezierTo(frontLeft, frontTop, frontLeft, frontTop + 18);
-    bodyPath.lineTo(frontLeft, frontBottom);
-    bodyPath.lineTo(notchCenterX, notchY);
-    bodyPath.lineTo(frontRight, frontBottom);
-    bodyPath.lineTo(frontRight, frontTop + 18);
-    bodyPath.quadraticBezierTo(frontRight, frontTop, frontRight - 18, frontTop);
-    bodyPath.close();
+    // Outer contour of 'L'
+    frontLPath.moveTo(emblemLeft + radius, emblemTop);
+    frontLPath.lineTo(emblemLeft + stemWidth, emblemTop);
+    frontLPath.lineTo(emblemLeft + stemWidth, emblemBottom - baseHeight);
+    frontLPath.lineTo(emblemRight - radius, emblemBottom - baseHeight);
+    frontLPath.quadraticBezierTo(emblemRight, emblemBottom - baseHeight, emblemRight, emblemBottom - baseHeight + radius);
+    frontLPath.lineTo(emblemRight, emblemBottom - radius);
+    frontLPath.quadraticBezierTo(emblemRight, emblemBottom, emblemRight - radius, emblemBottom);
+    frontLPath.lineTo(emblemLeft + radius, emblemBottom);
+    frontLPath.quadraticBezierTo(emblemLeft, emblemBottom, emblemLeft, emblemBottom - radius);
+    frontLPath.lineTo(emblemLeft, emblemTop + radius);
+    frontLPath.quadraticBezierTo(emblemLeft, emblemTop, emblemLeft + radius, emblemTop);
+    frontLPath.close();
 
-    final bodyRect = Rect.fromLTRB(frontLeft, frontTop, frontRight, frontBottom);
-
-    final bodyPaint = Paint()
+    final frontLPaint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF14E39B), // Mint Highlight
-          Color(0xFF00C77F),
-          Color(0xFF00A86B), // Base Mint
-          Color(0xFF008F5A), // Soft Rim Shade
+          Color(0xFF0066FF), // Electric Azure
+          Color(0xFF0A2540), // Deep Aegean Navy
+          Color(0xFF0052CC),
         ],
-        stops: [0.0, 0.3, 0.7, 1.0],
-      ).createShader(bodyRect)
+        stops: [0.0, 0.65, 1.0],
+      ).createShader(Rect.fromLTRB(emblemLeft, emblemTop, emblemRight, emblemBottom))
       ..style = PaintingStyle.fill;
 
-    canvas.drawPath(bodyPath, bodyPaint);
+    canvas.drawPath(frontLPath, frontLPaint);
 
-    // Front Inner Rim Highlight Bevel
-    final rimBevel = Path()
-      ..moveTo(frontLeft + 14, frontTop + 8)
-      ..lineTo(frontRight - 14, frontTop + 8);
+    // 3. Top / Inner Edge Chamfer Highlight
+    final highlightPath = Path()
+      ..moveTo(emblemLeft + radius, emblemTop + 3)
+      ..lineTo(emblemLeft + stemWidth - 3, emblemTop + 3)
+      ..lineTo(emblemLeft + stemWidth - 3, emblemBottom - baseHeight + 3)
+      ..lineTo(emblemRight - radius, emblemBottom - baseHeight + 3);
 
     canvas.drawPath(
-      rimBevel,
+      highlightPath,
       Paint()
-        ..color = const Color(0xFFA7F3D0).withOpacity(0.85)
+        ..color = const Color(0xFF60A5FA).withValues(alpha: 0.7)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.5
+        ..strokeWidth = 2.5
         ..strokeCap = StrokeCap.round,
     );
 
-    /* PREVIOUS BODY-ONLY SHINE LOGIC - COMMENTED OUT AS PER RULE
+    // 4. Draw Outlines
+    canvas.drawPath(frontLPath, outlinePaint);
+
     // ==========================================
-    // 3. CONTINUOUS SHINING LIGHT BEAM SWEEP
+    // 5. CONTINUOUS SPECULAR SHINING LIGHT BEAM
     // ==========================================
     canvas.save();
-    canvas.clipPath(bodyPath);
+    canvas.clipPath(frontLPath);
 
-    final shineWidth = width * 0.48;
-    final currentShineX = frontLeft + (width * 1.6 * shineProgress);
+    final shineWidth = width * 0.50;
+    final currentShineX = emblemLeft + (width * 1.8 * shineProgress);
 
     final shinePath = Path()
-      ..moveTo(currentShineX, frontTop - 50)
-      ..lineTo(currentShineX + shineWidth, frontTop - 50)
-      ..lineTo(currentShineX - 35, frontBottom + 50)
-      ..lineTo(currentShineX - 35 - shineWidth, frontBottom + 50)
+      ..moveTo(currentShineX, emblemTop - 40)
+      ..lineTo(currentShineX + shineWidth, emblemTop - 40)
+      ..lineTo(currentShineX - 30, emblemBottom + 40)
+      ..lineTo(currentShineX - 30 - shineWidth, emblemBottom + 40)
       ..close();
 
     final shinePaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          Colors.white.withOpacity(0.0),
-          Colors.white.withOpacity(0.6),
-          Colors.white.withOpacity(0.0),
+          Colors.white.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.65),
+          Colors.white.withValues(alpha: 0.0),
         ],
-      ).createShader(Rect.fromLTWH(currentShineX - shineWidth, frontTop, shineWidth * 2, height));
+      ).createShader(Rect.fromLTWH(currentShineX - shineWidth, emblemTop, shineWidth * 2, height));
 
     canvas.drawPath(shinePath, shinePaint);
     canvas.restore();
-    */
-
-    // Draw Front Body Outline
-    canvas.drawPath(bodyPath, outlinePaint);
 
     // ==========================================
-    // 4. RESTING LEFT HAND (ON HIP)
-    // ==========================================
-    final glovePaint = Paint()
-      ..shader = const RadialGradient(
-        center: Alignment(-0.35, -0.35),
-        radius: 0.75,
-        colors: [Color(0xFFFFFFFF), Color(0xFFF1F5F9), Color(0xFFCBD5E1)],
-      ).createShader(Rect.fromCircle(center: Offset.zero, radius: 25));
-
-    final leftHipPos = Offset(frontLeft - 8, center.dy + 35);
-    canvas.drawCircle(leftHipPos, 16, glovePaint);
-    canvas.drawCircle(leftHipPos, 16, outlinePaint);
-
-    // ==========================================
-    // 5. RAISED WAVING RIGHT HAND (4 FINGERS)
-    // ==========================================
-    final rightHandPos = Offset(frontRight + 24, center.dy - 25);
-    canvas.drawCircle(rightHandPos, 18, glovePaint);
-    canvas.drawCircle(rightHandPos, 18, outlinePaint);
-
-    // Finger Nodule 1
-    canvas.drawCircle(Offset(rightHandPos.dx + 4, rightHandPos.dy - 12), 7, glovePaint);
-    canvas.drawCircle(Offset(rightHandPos.dx + 4, rightHandPos.dy - 12), 7, outlinePaint);
-    // Finger Nodule 2
-    canvas.drawCircle(Offset(rightHandPos.dx + 12, rightHandPos.dy - 5), 7, glovePaint);
-    canvas.drawCircle(Offset(rightHandPos.dx + 12, rightHandPos.dy - 5), 7, outlinePaint);
-
-    // ==========================================
-    // 6. EXPRESSIVE 3D FACE
-    // ==========================================
-    final faceCenterY = center.dy - 8;
-    final eyePaint = Paint()..color = const Color(0xFF111827);
-    final sparkleEyePaint = Paint()..color = Colors.white;
-
-    // Left Pill-Eye
-    final leftEyeRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(notchCenterX - 22, faceCenterY), width: 11, height: 22),
-      const Radius.circular(5.5),
-    );
-    canvas.drawRRect(leftEyeRect, eyePaint);
-    canvas.drawCircle(Offset(notchCenterX - 24, faceCenterY - 4), 2.8, sparkleEyePaint);
-
-    // Right Pill-Eye
-    final rightEyeRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(notchCenterX + 22, faceCenterY - 3), width: 11, height: 22),
-      const Radius.circular(5.5),
-    );
-    canvas.drawRRect(rightEyeRect, eyePaint);
-    canvas.drawCircle(Offset(notchCenterX + 20, faceCenterY - 7), 2.8, sparkleEyePaint);
-
-    // Smile Line
-    final smile = Path()
-      ..moveTo(notchCenterX - 10, faceCenterY + 14)
-      ..quadraticBezierTo(notchCenterX, faceCenterY + 24, notchCenterX + 12, faceCenterY + 13);
-
-    canvas.drawPath(
-      smile,
-      Paint()
-        ..color = const Color(0xFF111827)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4.5
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Coral Cheeks
-    final cheekPaint = Paint()..color = const Color(0xFFFF645A).withOpacity(0.4);
-    canvas.drawOval(Rect.fromCenter(center: Offset(notchCenterX - 36, faceCenterY + 12), width: 13, height: 7), cheekPaint);
-    canvas.drawOval(Rect.fromCenter(center: Offset(notchCenterX + 36, faceCenterY + 10), width: 13, height: 7), cheekPaint);
-
-    // ==========================================
-    // 7. UNIFIED 3D PLEATED CHEF TOQUE HAT (Jaunty Tilted ~ -12 deg)
-    // ==========================================
-    final hatCenter = Offset(notchCenterX - 4, frontTop - 12);
-    final toqueGradient = const LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC), Color(0xFFE2E8F0)],
-      stops: [0.0, 0.65, 1.0],
-    );
-
-    final hatLeft = hatCenter.dx - width * 0.48;
-    final hatRight = hatCenter.dx + width * 0.48;
-    final hatTop = hatCenter.dy - 65;
-    final hatBaseY = hatCenter.dy + 8;
-
-    canvas.save();
-    canvas.translate(hatCenter.dx, hatCenter.dy);
-    canvas.rotate(-12 * math.pi / 180);
-    canvas.translate(-hatCenter.dx, -hatCenter.dy);
-
-    // Single Unified Billowing Cloud Contour
-    final hatCrownPath = Path()
-      ..moveTo(hatLeft, hatBaseY - 12)
-      ..cubicTo(hatLeft - 18, hatCenter.dy - 35, hatLeft + 5, hatTop, hatCenter.dx - 45, hatTop - 8)
-      ..cubicTo(hatCenter.dx - 25, hatTop - 20, hatCenter.dx + 25, hatTop - 20, hatCenter.dx + 45, hatTop - 8)
-      ..cubicTo(hatRight - 5, hatTop, hatRight + 18, hatCenter.dy - 35, hatRight, hatBaseY - 12)
-      ..close();
-
-    canvas.drawPath(
-      hatCrownPath,
-      Paint()
-        ..shader = toqueGradient.createShader(Rect.fromLTRB(hatLeft, hatTop - 20, hatRight, hatBaseY))
-        ..style = PaintingStyle.fill,
-    );
-
-    /* PREVIOUS VERTICAL PLEAT LINES - COMMENTED OUT AS PER RULE
-    // ELEGANT VERTICAL TOQUE PLEAT LINES
-    final pleatPaint = Paint()
-      ..color = const Color(0xFF111827)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..strokeCap = StrokeCap.round;
-
-    final pleatHighlightPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0
-      ..strokeCap = StrokeCap.round;
-
-    // Pleat 1 (Left)
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx - 36, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx - 40, hatCenter.dy - 25, hatCenter.dx - 46, hatTop + 8),
-      pleatPaint,
-    );
-    // Pleat 2 (Center-Left)
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx - 12, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx - 14, hatCenter.dy - 30, hatCenter.dx - 18, hatTop - 4),
-      pleatPaint,
-    );
-    // Pleat 3 (Center-Right)
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx + 12, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx + 14, hatCenter.dy - 30, hatCenter.dx + 18, hatTop - 4),
-      pleatPaint,
-    );
-    // Pleat 4 (Right)
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx + 36, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx + 40, hatCenter.dy - 25, hatCenter.dx + 46, hatTop + 8),
-      pleatPaint,
-    );
-
-    // White Flute Highlights between lines
-    canvas.drawLine(Offset(hatCenter.dx - 26, hatBaseY - 12), Offset(hatCenter.dx - 32, hatTop + 14), pleatHighlightPaint);
-    canvas.drawLine(Offset(hatCenter.dx, hatBaseY - 12), Offset(hatCenter.dx, hatTop - 6), pleatHighlightPaint);
-    canvas.drawLine(Offset(hatCenter.dx + 26, hatBaseY - 12), Offset(hatCenter.dx + 32, hatTop + 14), pleatHighlightPaint);
-    */
-
-    // NEW VOLUMETRIC 3D CLOUD LOBE SHADING (Soft ambient contours, no harsh lines)
-    final cloudShadowPaint = Paint()
-      ..color = const Color(0xFFCBD5E1).withOpacity(0.65)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
-
-    final cloudHighlightPaint = Paint()
-      ..color = Colors.white.withOpacity(0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0
-      ..strokeCap = StrokeCap.round;
-
-    // Soft lobe crevices
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx - 25, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx - 28, hatCenter.dy - 24, hatCenter.dx - 35, hatTop + 12),
-      cloudShadowPaint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx + 25, hatBaseY - 10)
-        ..quadraticBezierTo(hatCenter.dx + 28, hatCenter.dy - 24, hatCenter.dx + 35, hatTop + 12),
-      cloudShadowPaint,
-    );
-
-    // Soft top cloud highlights
-    canvas.drawPath(
-      Path()
-        ..moveTo(hatCenter.dx - 30, hatTop - 4)
-        ..quadraticBezierTo(hatCenter.dx, hatTop - 16, hatCenter.dx + 30, hatTop - 4),
-      cloudHighlightPaint,
-    );
-
-    // Crown Outline
-    canvas.drawPath(hatCrownPath, outlinePaint);
-
-    // Cylindrical Toque Band
-    final bandRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(hatCenter.dx, hatBaseY), width: width * 0.96, height: 24),
-      const Radius.circular(8),
-    );
-
-    final bandGradient = const LinearGradient(
-      colors: [Color(0xFFCBD5E1), Color(0xFFFFFFFF), Color(0xFFF1F5F9), Color(0xFFCBD5E1)],
-      stops: [0.0, 0.25, 0.75, 1.0],
-    );
-
-    canvas.drawRRect(bandRect, Paint()..shader = bandGradient.createShader(bandRect.outerRect));
-    canvas.drawRRect(bandRect, outlinePaint);
-
-    // Toque Band Top Highlight
-    canvas.drawLine(
-      Offset(hatCenter.dx - width * 0.40, hatBaseY - 6),
-      Offset(hatCenter.dx + width * 0.40, hatBaseY - 6),
-      Paint()
-        ..color = Colors.white.withOpacity(0.95)
-        ..strokeWidth = 2.5
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.restore();
-
-    // ==========================================
-    // UNIFIED GLOBAL SPECULAR SHINING LIGHT BEAM
-    // Sweeps across the entire unified mascot silhouette
-    // ==========================================
-    final unifiedMascotPath = Path()
-      ..addPath(depthPath, Offset.zero)
-      ..addPath(bodyPath, Offset.zero);
-
-    canvas.save();
-    canvas.clipPath(unifiedMascotPath);
-
-    final globalShineWidth = width * 0.55;
-    final currentGlobalShineX = (frontLeft - 30) + (width * 1.8 * shineProgress);
-
-    final globalShinePath = Path()
-      ..moveTo(currentGlobalShineX, frontTop - 90)
-      ..lineTo(currentGlobalShineX + globalShineWidth, frontTop - 90)
-      ..lineTo(currentGlobalShineX - 45, frontBottom + 70)
-      ..lineTo(currentGlobalShineX - 45 - globalShineWidth, frontBottom + 70)
-      ..close();
-
-    final globalShinePaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          Colors.white.withOpacity(0.0),
-          Colors.white.withOpacity(0.55),
-          Colors.white.withOpacity(0.0),
-        ],
-      ).createShader(Rect.fromLTWH(currentGlobalShineX - globalShineWidth, frontTop - 90, globalShineWidth * 2, height + 160));
-
-    canvas.drawPath(globalShinePath, globalShinePaint);
-    canvas.restore();
-
-    // ==========================================
-    // 8. SIGNATURE CORAL ENERGY RAYS
-    // ==========================================
-    final rayPaint = Paint()
-      ..color = const Color(0xFFFF645A)
-      ..strokeWidth = 6.0
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(Offset(hatCenter.dx + 65, hatCenter.dy - 42), Offset(hatCenter.dx + 82, hatCenter.dy - 54), rayPaint);
-    canvas.drawLine(Offset(hatCenter.dx + 76, hatCenter.dy - 22), Offset(hatCenter.dx + 96, hatCenter.dy - 26), rayPaint);
-    canvas.drawLine(Offset(hatCenter.dx + 74, hatCenter.dy - 2), Offset(hatCenter.dx + 93, hatCenter.dy + 4), rayPaint);
-
-    // ==========================================
-    // 9. TWINKLING SPECULAR STAR SPARKLES
+    // 6. TWINKLING SPECULAR SPARKLING ACCENTS
     // ==========================================
     if (sparkleOpacity > 0.05) {
-      _drawSparkle(canvas, Offset(hatCenter.dx - 60, hatCenter.dy + 40), 12 * sparkleOpacity, const Color(0xFFFFD700));
-      _drawSparkle(canvas, Offset(frontRight + 12, center.dy + 20), 10 * (1.1 - sparkleOpacity), const Color(0xFF14E39B));
+      _drawSparkle(canvas, Offset(emblemLeft + stemWidth * 0.5, emblemTop + 14), 10 * sparkleOpacity, const Color(0xFF60A5FA));
+      _drawSparkle(canvas, Offset(emblemRight - 8, emblemBottom - 18), 12 * (1.1 - sparkleOpacity), const Color(0xFFF59E0B));
     }
   }
 
@@ -551,13 +302,6 @@ class _Mascot3DPainter extends CustomPainter {
     path.close();
 
     canvas.drawPath(path, Paint()..color = color);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFF111827)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
   }
 
   @override

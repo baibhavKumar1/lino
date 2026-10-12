@@ -316,71 +316,10 @@ class _SavedRecipesModalState extends State<SavedRecipesModal> {
     return Container(
       color: AppColors.background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ==========================================
-            // 1. HERO EDITORIAL VAULT HEADER
-            // ==========================================
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: AppRadii.lgBorder,
-                border: Border.all(color: AppColors.border),
-                boxShadow: AppShadows.card,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.bookmark_rounded, color: AppColors.primaryDark, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Saved Recipes',
-                          style: AppTypography.displayMedium(fontSize: 18),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${_recipes.length} curated recipes saved for cooking',
-                          style: AppTypography.bodySmall(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${_recipes.length} Saved',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
             // ==========================================
             // 2. SEARCH & QUICK FILTER PILLS
             // ==========================================

@@ -7,6 +7,12 @@
       "skillPath": "skills/apple-design/SKILL.md",
       "computedHash": "8b94db67cb9edaad5f1501010804caa610131f1d2dfda0a27664b2e858deade3"
     },
+    "beautiful-shadows": {
+      "source": "mengto/skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/web-design/beautiful-shadows/SKILL.md",
+      "computedHash": "6abcd3ab6141c617f4e8514886d0ac744a1d6c1e4b0ccbd7087a19bedd5746f1"
+    },
     "brand-book-html": {
       "source": "ordinarynerds/brand-book",
       "sourceType": "github",
@@ -30,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "font-pairing-suggester/SKILL.md",
       "computedHash": "03b9ac9b499f962f9676bbd669584c262becb77193646c30c2c14c20ca5b353f"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "d4cfdc3b7a18041ff02e1ad4b6377450e978e10928ba7e96377ff7d66994b490"
     },
     "implement": {
       "source": "mattpocock/skills",

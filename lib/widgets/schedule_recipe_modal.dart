@@ -169,7 +169,8 @@ class _ScheduleRecipeModalState extends State<ScheduleRecipeModal> {
               final session = await AuthService.getActiveUserSession();
               final event = MealCalendarEvent(
                 id: 'cal_${DateTime.now().microsecondsSinceEpoch}',
-                userId: session['id'] ?? 'user_kichook_primary',
+                // PREVIOUS DEFAULT USER ID: user_kichook_primary
+                userId: session['id'] ?? 'user_lino_primary',
                 eventDate: selectedDate,
                 mealSlot: selectedSlot,
                 dishName: widget.recipe.dishName,

@@ -82,7 +82,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
             ChatMessage(
               id: 'welcome_${DateTime.now().millisecondsSinceEpoch}',
               role: MessageRole.assistant,
-              content: 'Namaste! 🙏 I am your **Kichook Kitchen Chef** co-pilot.\n\nI tailor meal recommendations based on your in-stock pantry, dietary preferences, and cooking horizon.',
+              content: 'Namaste! 🙏 I am your **Lino** culinary co-pilot.\n\nI tailor meal recommendations based on your in-stock pantry, dietary preferences, and cooking horizon.',
               suggestions: [
                 'What can I make for dinner in 15m?',
                 'Quick high-protein recipe',

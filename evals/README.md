@@ -1,6 +1,6 @@
-# Kichook OpenRouter Agent Evaluation Suite (DeepEval)
+# Lino OpenRouter Agent Evaluation Suite (DeepEval)
 
-Production evaluation suite designed to guarantee that the Kichook OpenRouter agent answers properly, adheres to all JSON schemas, obeys dietary/allergy constraints, enforces in-pantry locks, and handles edge cases accurately.
+Production evaluation suite designed to guarantee that the Lino OpenRouter agent answers properly, adheres to all JSON schemas, obeys dietary/allergy constraints, enforces in-pantry locks, and handles edge cases accurately.
 
 ---
 

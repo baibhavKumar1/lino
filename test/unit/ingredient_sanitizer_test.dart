@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/models/grocery_item.dart';
-import 'package:kichook/services/ingredient_sanitizer.dart';
+// import 'package:kichook/models/grocery_item.dart';
+// import 'package:kichook/services/ingredient_sanitizer.dart';
+import 'package:lino/models/grocery_item.dart';
+import 'package:lino/services/ingredient_sanitizer.dart';
 
 void main() {
   group('IngredientSanitizer Tests', () {

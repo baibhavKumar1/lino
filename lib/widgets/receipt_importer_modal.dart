@@ -698,9 +698,16 @@ Amul Butter 100g - 1''',
   @override
   Widget build(BuildContext context) {
     return Container(
+      /* PREVIOUS FLAT DECORATION - COMMENTED OUT AS PER RULE
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      */
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: AppShadows.modal,
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,

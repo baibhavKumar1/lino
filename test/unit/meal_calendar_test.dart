@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/models/meal_calendar_event.dart';
-import 'package:kichook/services/openrouter_service.dart';
+// import 'package:kichook/models/meal_calendar_event.dart';
+// import 'package:kichook/services/openrouter_service.dart';
+import 'package:lino/models/meal_calendar_event.dart';
+import 'package:lino/services/openrouter_service.dart';
 
 void main() {
   group('MealCalendarEvent Tests', () {

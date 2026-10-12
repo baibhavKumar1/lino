@@ -10,6 +10,7 @@ export 'openrouter/openrouter_client.dart';
 export 'openrouter/meal_recipe.dart';
 export 'openrouter/receipt_ocr_service.dart';
 export 'openrouter/chef_agent_service.dart';
+export 'jev_classification_service.dart';
 
 class OpenRouterService {
   static Future<List<MealRecipe>> ideateMeals({

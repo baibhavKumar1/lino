@@ -1,5 +1,5 @@
-name: kichook
-description: "Kichook - Modern Grocery Shopping List Companion & Intelligent Kitchen Management for Android."
+name: lino
+description: "Lino - Modern Grocery Shopping List Companion & Intelligent Kitchen Management for Android."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -38,7 +38,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-  fonts:
-    - family: Funnel Display
-      fonts:
-        - asset: assets/fonts/FunnelDisplay.ttf
+    - logo.jpg
+  # PREVIOUS LOCAL FONTS - COMMENTED OUT AS PER RULE TO UNIFY ON POPPINS
+  # fonts:
+  #   - family: Funnel Display
+  #     fonts:
+  #       - asset: assets/fonts/FunnelDisplay.ttf

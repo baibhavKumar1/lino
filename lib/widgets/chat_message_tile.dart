@@ -34,7 +34,7 @@ class ChatMessageTile extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12, left: 48),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(16).copyWith(bottomRight: const Radius.circular(2)),
           ),
           /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
@@ -79,7 +79,7 @@ class ChatMessageTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 const Text(
-                  'Kichook Chef',
+                  'Lino',
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                 ),
               ],
@@ -104,7 +104,7 @@ class ChatMessageTile extends StatelessWidget {
               child: MarkdownText(
                 message.content,
                 style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, height: 1.35),
-                boldStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0F172A), height: 1.35),
+                boldStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.35),
               ),
             ),
 

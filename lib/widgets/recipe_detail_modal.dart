@@ -46,9 +46,16 @@ class RecipeDetailModal extends StatelessWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
+      /* PREVIOUS FLAT DECORATION - COMMENTED OUT AS PER RULE
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      */
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: AppShadows.modal,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

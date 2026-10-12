@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/animated_3d_mascot_widget.dart';
+import '../widgets/interactive_mascot.dart';
+import '../widgets/lino_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,14 +37,40 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    /* PREVIOUS SCAFFOLD - COMMENTED OUT AS PER RULE
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
+      body: SafeArea(...),
+    );
+    */
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 3D Animated List-Ribbon Mascot Widget with Shining Sweep & Sparkles
+              // Interactive Welcoming Mascot Widget with Eased Scale & FadeIn
+              const InteractiveMascot(
+                size: 160,
+                mood: MascotMood.waving,
+              )
+                  .animate()
+                  .scale(
+                    duration: 700.ms,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(duration: 500.ms),
+
+              /* PREVIOUS 3D RIBBON LOGO - COMMENTED OUT AS PER RULE
               const Animated3DMascotWidget(
                 width: 220,
                 height: 240,
@@ -52,22 +81,35 @@ class _SplashScreenState extends State<SplashScreen> {
                     curve: Curves.easeOutBack,
                   )
                   .fadeIn(duration: 500.ms),
+              */
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Title: KICHOOK in warm Fraunces
-              Text(
-                'KICHOOK',
-                style: GoogleFonts.fraunces(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2.0,
-                  color: const Color(0xFF0F172A),
+              // Official Lino Vector Wordmark
+              const Center(
+                child: LinoWordmark(
+                  height: 32,
+                  color: AppColors.primaryDark,
                 ),
               )
                   .animate()
                   .fadeIn(delay: 300.ms, duration: 500.ms)
                   .slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
+
+              /* PREVIOUS PLAIN TEXT LINO - COMMENTED OUT AS PER RULE
+              Text(
+                'LINO',
+                style: GoogleFonts.poppins(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 4.0,
+                  color: AppColors.textPrimary,
+                ),
+              )
+                  .animate()
+                  .fadeIn(delay: 300.ms, duration: 500.ms)
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
+              */
 
               const SizedBox(height: 6),
 
@@ -81,12 +123,29 @@ class _SplashScreenState extends State<SplashScreen> {
                   letterSpacing: 0.3,
                 ),
                 */
+                /* PREVIOUS GREEN ACCENT - COMMENTED OUT AS PER RULE
                 style: const TextStyle(
                   fontFamily: 'Funnel Display',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF059669),
                   letterSpacing: 0.3,
+                ),
+                */
+                /* PREVIOUS FUNNEL DISPLAY ACCENT - COMMENTED OUT AS PER RULE
+                style: const TextStyle(
+                  fontFamily: 'Funnel Display',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.accentBlue,
+                  letterSpacing: 0.3,
+                ),
+                */
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.accentBlue,
+                  letterSpacing: 0.2,
                 ),
               )
                   .animate()
@@ -100,13 +159,17 @@ class _SplashScreenState extends State<SplashScreen> {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
+                  /* PREVIOUS GREEN SPINNER - COMMENTED OUT AS PER RULE
                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                  */
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentBlue),
                 ),
               ).animate().fadeIn(delay: 700.ms),
             ],
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

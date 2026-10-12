@@ -121,7 +121,8 @@ class MealCalendarDbService {
         for (final row in results) {
           list.add(MealCalendarEvent(
             id: row[0] as String,
-            userId: row[1] as String? ?? 'user_kichook_primary',
+            // PREVIOUS DEFAULT USER ID: user_kichook_primary
+            userId: row[1] as String? ?? 'user_lino_primary',
             eventDate: row[2] is DateTime ? row[2] as DateTime : DateTime.parse(row[2].toString()),
             mealSlot: CalendarMealSlot.fromString(row[3] as String? ?? 'dinner'),
             dishName: row[4] as String? ?? 'Planned Meal',

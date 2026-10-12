@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import '../jev_classification_service.dart';
 import 'openrouter_client.dart';
 
 class ScannedReceiptItem {
   final String name;
   final int quantity;
   final String unit;
-  final String categoryKey;
+  String categoryKey;
 
   ScannedReceiptItem({
     required this.name,
@@ -44,8 +45,8 @@ class ReceiptOcrService {
           headers: {
             'Authorization': 'Bearer ${OpenRouterClient.apiKey}',
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://kichook.app',
-            'X-Title': 'Kichook Receipt OCR',
+            'HTTP-Referer': 'https://lino.app',
+            'X-Title': 'Lino Receipt OCR',
           },
           body: jsonEncode({
             'model': model,
@@ -118,6 +119,20 @@ Return ONLY valid JSON in this exact schema:
                   }
                 }
                 if (items.isNotEmpty) {
+                  // Enhance categorized items with Jev System One classifier in parallel
+                  await Future.wait(
+                    items.map((item) async {
+                      if (item.categoryKey == 'kitchenStaples' || item.categoryKey.isEmpty) {
+                        try {
+                          final classified = await JevClassificationService.classifyGroceryCategory(item.name);
+                          // Assign precise categoryKey
+                          item.categoryKey = classified.name;
+                        } catch (_) {
+                          // Fallback to existing
+                        }
+                      }
+                    }),
+                  );
                   return items;
                 }
               }

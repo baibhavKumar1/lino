@@ -39,11 +39,9 @@ ssl_context.verify_mode = ssl.CERT_NONE
 def call_openrouter(prompt: str, temperature: float = 0.0, max_tokens: int = 1800, timeout_secs: int = 30) -> str:
     """Invokes OpenRouter using Python built-in urllib with automatic fallback across free models."""
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://kichook.app",
-        "X-Title": "Kichook Agent Evaluation Suite",
-        "User-Agent": "KichookEvalRunner/1.0",
+        "HTTP-Referer": "https://lino.app",
+        "X-Title": "Lino Agent Evaluation Suite",
+        "User-Agent": "LinoEvalRunner/1.0",
     }
 
     last_error = None
@@ -345,9 +343,8 @@ class TestRunner:
         except Exception as e:
             self.log_result(name, False, str(e), combined, raw)
 
-    def run_all(self):
         print("=================================================================", flush=True)
-        print("  KICHOOK OPENROUTER AGENT EVALUATION SUITE (100% FREE MODELS)   ", flush=True)
+        print("  LINO OPENROUTER AGENT EVALUATION SUITE (100% FREE MODELS)      ", flush=True)
         print("=================================================================", flush=True)
 
         self.eval_ideate_zero_restock()

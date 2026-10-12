@@ -1,6 +1,6 @@
-# kichook
+# lino
 
-A new Flutter project.
+Lino - Modern Grocery Shopping List Companion & Intelligent Kitchen Management.
 
 agy --conversation=04e672a8-6486-41e3-947c-c6e648951a32
 
@@ -20,3 +20,5 @@ Skill 'styles' installed to C:\Users\hireb\.agents\skills\styles
 Skill 'styles' installed to C:\Users\hireb\.config\opencode\skills\styles
 Skill 'styles' installed to C:\Users\hireb\.agents\skills\styles
 Skill 'styles' installed to C:\Users\hireb\.agents\skills\styles
+
+agy --conversation=3343f0c9-ed3f-4c4c-85fb-78f7e63bca9d

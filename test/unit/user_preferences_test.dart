@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/models/user_preferences.dart';
+// import 'package:kichook/models/user_preferences.dart';
+import 'package:lino/models/user_preferences.dart';
 
 void main() {
   group('UserPreferences Domain Tests', () {

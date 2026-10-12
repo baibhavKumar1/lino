@@ -52,8 +52,8 @@ class OpenRouterModel(DeepEvalBaseLLM):
             base_url=self.base_url,
             api_key=self.api_key,
             default_headers={
-                "HTTP-Referer": "https://kichook.app",
-                "X-Title": "Kichook Agent Evaluation Suite",
+                "HTTP-Referer": "https://lino.app",
+                "X-Title": "Lino Agent Evaluation Suite",
             },
         )
 

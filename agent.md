@@ -1,7 +1,7 @@
-# Kichook - Grocery Shopping List Android App
+# Lino - Grocery Shopping List Android App
 
 ## Project Overview
-Kichook is a modern, high-performance Android mobile application built with Flutter to help users seamlessly create, manage, and optimize their grocery shopping lists.
+Lino is a modern, high-performance Android mobile application built with Flutter to help users seamlessly create, manage, and optimize their grocery shopping lists.
 
 ## Mandatory Agent Protocol
 - **Pre-Edit Explanation Requirement**: Before creating, updating, or modifying any code or project files, the AI agent MUST explain the planned changes, target files, and rationale clearly to the user.
@@ -13,12 +13,12 @@ Kichook is a modern, high-performance Android mobile application built with Flut
 1. Locate Flutter SDK on the system (or verify path) and check dependencies.
 2. Generate high-quality visual assets using AI image generation:
    - Impressive Splash Screen Banner & Animated/Branded Splash Assets.
-   - App Logo & Icon (`kichook_logo.png`).
+   - App Logo & Icon (`logo.png`).
    - Fresh Fruit & Grocery Category & Product Thumbnails (Avocado, Dragon Fruit, Orange, Berries, Fresh Veggies, Dairy, Beverages, Bakery).
 
 ### Phase 2: Core Features & Architecture
 1. **Splash Screen (`lib/screens/splash_screen.dart`)**:
-   - Modern animated splash screen featuring the **Kichook Logo**, slogan ("Smart Grocery Shopping, Simplified"), smooth scale/fade animations, and seamless transition to the main screen.
+   - Modern animated splash screen featuring the **Lino Logo**, slogan ("Smart Grocery Shopping, Simplified"), smooth scale/fade animations, and seamless transition to the main screen.
 
 2. **Main Shopping & Grocery List UI (`lib/screens/home_screen.dart`)**:
    - **Top Header**: Back button, Page Title ("Fresh Fruits"), Search Bar with live search, Filter buttons ("Sort By", "Price Drop").

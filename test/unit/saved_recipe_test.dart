@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/models/saved_recipe.dart';
-import 'package:kichook/services/openrouter_service.dart';
+// import 'package:kichook/models/saved_recipe.dart';
+// import 'package:kichook/services/openrouter_service.dart';
+import 'package:lino/models/saved_recipe.dart';
+import 'package:lino/services/openrouter_service.dart';
 
 void main() {
   group('SavedRecipe Tests', () {

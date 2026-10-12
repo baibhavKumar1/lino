@@ -28,7 +28,8 @@ def build_ideate_meals_prompt(
     is_strict_in_stock = restock_time_minutes == 0
     effective_one_pot = is_one_pot_only or any("one-pot" in a.lower() for a in appliances)
 
-    return f"""YOU ARE KICHOOK KITCHEN CHEF. IDEATE EXACTLY 3 DISTINCT MEAL OPTIONS.
+    # PREVIOUS PROMPT ROLE: YOU ARE KICHOOK KITCHEN CHEF. IDEATE EXACTLY 3 DISTINCT MEAL OPTIONS.
+    return f"""YOU ARE LINO KITCHEN CHEF. IDEATE EXACTLY 3 DISTINCT MEAL OPTIONS.
 
 CONTEXT:
 - Meal Slot: {meal_time}
@@ -145,7 +146,8 @@ def build_chat_system_prompt(
         if item.get("quantity", 0) > 0 or item.get("isAdded", False)
     ]
 
-    return f"""YOU ARE KICHOOK KITCHEN CHEF AGENT, an intelligent, conversational culinary co-pilot for Indian and global home cooking.
+    # PREVIOUS PROMPT ROLE: YOU ARE KICHOOK KITCHEN CHEF AGENT, an intelligent, conversational culinary co-pilot for Indian and global home cooking.
+    return f"""YOU ARE LINO KITCHEN CHEF AGENT, an intelligent, conversational culinary co-pilot for Indian and global home cooking.
 
 KITCHEN PROFILE & ACTIVE CONSTRAINTS:
 - Target Meal Slot: {meal_slot or 'Any'}

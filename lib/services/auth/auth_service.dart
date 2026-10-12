@@ -54,7 +54,7 @@ class AuthService {
 
     return {
       'id': userId,
-      'email': prefs.getString(_keyUserEmail) ?? 'chef@kichook.app',
+      'email': prefs.getString(_keyUserEmail) ?? 'user@lino.app',
       'fullName': prefs.getString(_keyFullName) ?? 'Chef',
       'photoUrl': prefs.getString(_keyPhotoUrl),
       'householdName': prefs.getString(_keyHouseholdName) ?? 'My Kitchen',
@@ -107,7 +107,7 @@ class AuthService {
       await prefs.setString(_keyHouseholdName, householdName);
     }
 
-    final email = prefs.getString(_keyUserEmail) ?? 'chef@kichook.app';
+    final email = prefs.getString(_keyUserEmail) ?? 'user@lino.app';
     final userId = prefs.getString(_keyUserId) ?? 'user_${DateTime.now().microsecondsSinceEpoch}';
     final fullName = prefs.getString(_keyFullName) ?? 'Chef';
     final photoUrl = prefs.getString(_keyPhotoUrl);

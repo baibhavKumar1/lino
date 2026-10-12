@@ -1,5 +1,6 @@
 import '../models/grocery_item.dart';
 import '../screens/onboarding_screen.dart';
+import 'jev_classification_service.dart';
 
 /// Production-grade culinary ingredient sanitizer & catalog matcher
 class IngredientSanitizer {
@@ -190,8 +191,42 @@ class IngredientSanitizer {
     return -1;
   }
 
-  /// Intelligently assigns an item category based on ingredient keywords
+  /// JEV AI-POWERED ASYNC CLASSIFICATION (System One Decision Layer)
+  static Future<ItemCategory> classifyCategoryWithJev(String ingredientName) async {
+    return JevClassificationService.classifyGroceryCategory(ingredientName);
+  }
+
+  /// JEV AI-POWERED DEFAULT PACKAGING UNIT PREDICTION
+  static Future<String> classifyDefaultUnitWithJev(String ingredientName) async {
+    return JevClassificationService.classifyDefaultUnit(ingredientName);
+  }
+
+  /// Synchronous fallback classification using heuristic patterns
   static ItemCategory guessCategory(String ingredientName) {
+    // PREVIOUS HEURISTIC LOGIC COMMENTED OUT FOR PRESERVATION:
+    /*
+    final lower = ingredientName.toLowerCase();
+    if (lower.contains('milk') || lower.contains('paneer') || lower.contains('curd') || lower.contains('dahi') || lower.contains('cheese') || lower.contains('butter') || lower.contains('cream') || lower.contains('oil') || lower.contains('ghee') || lower.contains('sugar')) {
+      return ItemCategory.kitchenStaples;
+    }
+    if (lower.contains('masala') || lower.contains('blend') || lower.contains('garam')) {
+      return ItemCategory.masalaBlends;
+    }
+    if (lower.contains('powder') || lower.contains('haldi') || lower.contains('jeera') || lower.contains('turmeric') || lower.contains('cumin') || lower.contains('chili') || lower.contains('mirch') || lower.contains('salt') || lower.contains('hing') || lower.contains('clove') || lower.contains('cardamom') || lower.contains('cinnamon') || lower.contains('pepper') || lower.contains('mustard')) {
+      return ItemCategory.singleSpices;
+    }
+    if (lower.contains('dal') || lower.contains('chana') || lower.contains('rajma') || lower.contains('pulse') || lower.contains('lentil')) {
+      return ItemCategory.pulsesLentils;
+    }
+    if (lower.contains('rice') || lower.contains('poha') || lower.contains('grain') || lower.contains('quinoa')) {
+      return ItemCategory.riceGrains;
+    }
+    if (lower.contains('atta') || lower.contains('flour') || lower.contains('suji') || lower.contains('rava') || lower.contains('maida') || lower.contains('besan') || lower.contains('baking')) {
+      return ItemCategory.floursBaking;
+    }
+    return ItemCategory.freshProduce;
+    */
+
     final lower = ingredientName.toLowerCase();
     if (lower.contains('milk') ||
         lower.contains('paneer') ||

@@ -76,9 +76,16 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Container(
             padding: const EdgeInsets.all(22),
+            /* PREVIOUS FLAT DECORATION - COMMENTED OUT AS PER RULE
             decoration: const BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+            ),
+            */
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+              boxShadow: AppShadows.modal,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -264,16 +271,65 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
     final lowItems = _lowStockItems;
     final healthPercent = (_stockHealthRatio * 100).toInt();
 
+    /* PREVIOUS UNMASKED SCROLL CONTAINER - COMMENTED OUT AS PER RULE
     return Container(
       color: AppColors.background,
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 96),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ==========================================
-            // 1. SPACE-EFFICIENT BENTO MICRO HEADER
-            // ==========================================
+    */
+    /* PREVIOUS WEAK DENSITY MASK - COMMENTED OUT AS PER RULE
+    return Container(
+      color: AppColors.background,
+      child: ShaderMask(
+        shaderCallback: (Rect bounds) {
+          return const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.white,
+              Colors.white,
+              Colors.transparent,
+            ],
+            stops: [0.0, 0.02, 0.94, 1.0],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: SingleChildScrollView(
+    */
+    return Container(
+      color: AppColors.background,
+      child: Stack(
+        children: [
+          // Scrollable Content with Exact 10px Spread ShaderMask
+          ShaderMask(
+            shaderCallback: (Rect bounds) {
+              final double h = bounds.height;
+              final double topStop = h > 0 ? (10.0 / h).clamp(0.001, 0.08) : 0.01;
+              final double bottomStop = h > 0 ? (1.0 - (10.0 / h)).clamp(0.92, 0.999) : 0.99;
+
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: const [
+                  Colors.transparent,
+                  Colors.white,
+                  Colors.white,
+                  Colors.transparent,
+                ],
+                stops: [0.0, topStop, bottomStop, 1.0],
+              ).createShader(bounds);
+            },
+            blendMode: BlendMode.dstIn,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              // ==========================================
+              // 1. SPACE-EFFICIENT BENTO MICRO HEADER
+              // ==========================================
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
@@ -554,22 +610,16 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+                  /* PREVIOUS SPACING CONFIG - COMMENTED OUT AS PER RULE
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 0.84,
-                  */
-                  /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.85,
                   */
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.70,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.85,
                 ),
                 itemCount: filtered.length,
                 itemBuilder: (context, index) {
@@ -581,6 +631,53 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
           ],
         ),
       ),
+    ),
+
+    // Top Dense Feathered Dissolve Overlay (Exact 10px spread)
+    Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 10,
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.background,
+                AppColors.background.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+
+    // Bottom Dense Feathered Dissolve Overlay (Exact 10px spread)
+    Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 10,
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                AppColors.background,
+                AppColors.background.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  ],
+),
     );
   }
 
@@ -809,16 +906,18 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
   }
   */
 
+  // COHESIVE EARTHY ARTISANAL CARD PALETTE (Harmonious Matte Culinary Family)
+  /* PREVIOUS RANDOM RAINBOW PALETTE - COMMENTED OUT AS PER RULE
   Color _getSolidArcColor(PantryItem item) {
     if (item.isLowStock || item.quantity <= 1) {
       return const Color(0xFFE11D48); // Solid Coral Red (Low Stock)
     }
     switch (item.category) {
       case ItemCategory.freshProduce:
-        return const Color(0xFF16A34A); // Solid Fresh Green (like Green Arc in image.png)
+        return const Color(0xFF16A34A); // Solid Fresh Green
       case ItemCategory.singleSpices:
       case ItemCategory.masalaBlends:
-        return const Color(0xFFD97706); // Solid Warm Mustard/Amber (like Artist Arc in image.png)
+        return const Color(0xFFD97706); // Solid Warm Mustard/Amber
       case ItemCategory.pulsesLentils:
       case ItemCategory.floursBaking:
         return const Color(0xFFEA580C); // Solid Terracotta Orange
@@ -832,6 +931,97 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
       case ItemCategory.all:
       default:
         return const Color(0xFF15803D); // Solid Emerald
+    }
+  }
+  */
+
+  // RICH LUMINOUS GOURMET ARTISANAL PALETTE
+  /* PREVIOUS DARK MUTED PALETTE - COMMENTED OUT AS PER RULE
+  Color _getSolidArcColor(PantryItem item) {
+    if (item.isLowStock || item.quantity <= 1) {
+      return const Color(0xFF5A2027); // Muted Crimson Ember (Low Stock)
+    }
+    switch (item.category) {
+      case ItemCategory.freshProduce:
+        return const Color(0xFF223F2D); // Earthy Forest Moss
+      case ItemCategory.singleSpices:
+        return const Color(0xFF3B2A1E); // Roasted Cinnamon Umber
+      case ItemCategory.masalaBlends:
+        return const Color(0xFF442A1E); // Smoked Paprika Terra
+      case ItemCategory.pulsesLentils:
+        return const Color(0xFF38291F); // Toasted Flax Clay
+      case ItemCategory.floursBaking:
+        return const Color(0xFF362B21); // Warm Buckwheat Ochre
+      case ItemCategory.riceGrains:
+        return const Color(0xFF1F3533); // Deep Cedar Slate
+      case ItemCategory.dryFruitsNuts:
+        return const Color(0xFF3A2B22); // Roasted Walnut Bark
+      case ItemCategory.readyToCook:
+        return const Color(0xFF262C44); // Deep Indigo Herb
+      case ItemCategory.kitchenStaples:
+      case ItemCategory.all:
+      default:
+        return const Color(0xFF1B382B); // Deep Pine Basil
+    }
+  }
+  */
+
+  // NORDIC SAGE & OLIVE STONEWARE PALETTE (Calm, Cohesive Botanical Family)
+  /* PREVIOUS RAINBOW & DARK PALETTES - COMMENTED OUT AS PER RULE
+  Color _getSolidArcColor(PantryItem item) {
+    if (item.isLowStock || item.quantity <= 1) {
+      return const Color(0xFFBE123C);
+    }
+    switch (item.category) {
+      case ItemCategory.freshProduce:
+        return const Color(0xFF23824E);
+      case ItemCategory.singleSpices:
+        return const Color(0xFFC77700);
+      case ItemCategory.masalaBlends:
+        return const Color(0xFFC2522B);
+      case ItemCategory.pulsesLentils:
+        return const Color(0xFFA86324);
+      case ItemCategory.floursBaking:
+        return const Color(0xFFB87928);
+      case ItemCategory.riceGrains:
+        return const Color(0xFF167B82);
+      case ItemCategory.dryFruitsNuts:
+        return const Color(0xFFA05530);
+      case ItemCategory.readyToCook:
+        return const Color(0xFF4C5599);
+      case ItemCategory.kitchenStaples:
+      case ItemCategory.all:
+      default:
+        return const Color(0xFF1E7558);
+    }
+  }
+  */
+
+  Color _getSolidArcColor(PantryItem item) {
+    if (item.isLowStock || item.quantity <= 1) {
+      return const Color(0xFF7A3E39); // Smoked Terracotta Clay (Low Stock)
+    }
+    switch (item.category) {
+      case ItemCategory.freshProduce:
+        return const Color(0xFF3B5649); // Fresh Thyme Herb
+      case ItemCategory.singleSpices:
+        return const Color(0xFF455843); // Olive Laurel Clay
+      case ItemCategory.masalaBlends:
+        return const Color(0xFF4E5642); // Warm Stoneware Umber
+      case ItemCategory.pulsesLentils:
+        return const Color(0xFF52543F); // Muted Amber Olive
+      case ItemCategory.floursBaking:
+        return const Color(0xFF3E5047); // Dry Oat Sage
+      case ItemCategory.riceGrains:
+        return const Color(0xFF2F4C47); // Nordic Spruce Slate
+      case ItemCategory.dryFruitsNuts:
+        return const Color(0xFF485141); // Warm Bark Olive
+      case ItemCategory.readyToCook:
+        return const Color(0xFF35484D); // Muted Eucalyptus Slate
+      case ItemCategory.kitchenStaples:
+      case ItemCategory.all:
+      default:
+        return const Color(0xFF334E43); // Nordic Celadon Sage
     }
   }
 
@@ -859,38 +1049,68 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
     final solidCardColor = _getSolidArcColor(item);
     final imageUrl = _getFoodImageUrl(item);
 
+    // Calculate a rich, darker extrusion color for the 3D button lip effect
+    final hsl = HSLColor.fromColor(solidCardColor);
+    final darkExtrusionColor = hsl.withLightness((hsl.lightness * 0.60).clamp(0.0, 1.0)).toColor();
+
     return Container(
-      padding: const EdgeInsets.all(11),
+      padding: const EdgeInsets.all(9),
+      /* PREVIOUS DUAL SHADOW BOX DECORATION - COMMENTED OUT AS PER RULE
       decoration: BoxDecoration(
         color: solidCardColor,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          // 1. Tonal Ambient Shadow (Harmonized with card's stoneware hue)
+          BoxShadow(
+            color: solidCardColor.withValues(alpha: 0.28),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: -1,
+          ),
+          // 2. Crisp Grounding Drop Shadow
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      */
+      decoration: BoxDecoration(
+        color: solidCardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.22),
+          width: 1.2,
+        ),
+        boxShadow: [
+          // 1. Chunky 3D Button Extrusion / Keycap Lip (Zero-blur bottom displacement matching Arc card in image.png)
+          BoxShadow(
+            color: darkExtrusionColor.withValues(alpha: 0.92),
+            offset: const Offset(0, 4),
+            blurRadius: 0,
+          ),
+          // 2. Tonal Ambient Glow (Harmonized with Nordic stoneware palette)
+          BoxShadow(
+            color: solidCardColor.withValues(alpha: 0.35),
+            offset: const Offset(0, 8),
+            blurRadius: 14,
+            spreadRadius: -2,
+          ),
+          // 3. Grounding Contact Shadow
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.12),
+            offset: const Offset(0, 10),
+            blurRadius: 18,
+            spreadRadius: -1,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Top Header: Title (Italic Serif) + Menu (Full-width 2-line title)
-          /* PREVIOUS LOGIC WITH TOP QUANTITY PILL - COMMENTED OUT AS PER RULE
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.fraunces(...),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(...),
-                child: Text(isLow ? 'Low' : item.displayStock, ...),
-              ),
-              SizedBox(width: 22, height: 22, child: PopupMenuButton<String>(...)),
-            ],
-          ),
-          */
+          // 1. Top Header: Title (Italic Serif) + Menu + Stock Badge (Moved above image)
+          /* PREVIOUS LOGIC WITH BOTTOM TEXT BADGE - COMMENTED OUT AS PER RULE
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -952,13 +1172,230 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
               ),
             ],
           ),
+          */
+          // 1. Complete Header & Controls Section (Situated Completely Above the Image)
+          /* PREVIOUS LOGIC WITH BOTTOM ACTION BAR - COMMENTED OUT AS PER RULE
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.fraunces(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: PopupMenuButton<String>(...),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                child: Text(isLow ? 'Low: ${item.displayStock}' : item.displayStock, ...),
+              ),
+            ],
+          ),
+          ...
+          Container(
+            height: 30,
+            child: Row(
+              children: [
+                Stepper,
+                Restock Button,
+              ],
+            ),
+          ),
+          */
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Row 1: Item Name + Menu Trigger
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.fraunces(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white,
+                        height: 0.95,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // Menu trigger
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      iconSize: 15,
+                      icon: const Icon(Icons.more_vert_rounded, color: Colors.white70),
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      onSelected: (val) {
+                        if (val == 'edit') {
+                          _showItemDialog(context, itemToEdit: item);
+                        } else if (val == 'delete') {
+                          widget.onDeletePantryItem(item);
+                        }
+                      },
+                      itemBuilder: (ctx) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 15, color: AppColors.textPrimary),
+                              SizedBox(width: 6),
+                              Text('Edit', style: TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline_rounded, size: 15, color: AppColors.danger),
+                              SizedBox(width: 6),
+                              Text('Delete', style: TextStyle(fontSize: 12, color: AppColors.danger)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 5),
+
+              // Row 2: Stock Badge (Left) + Compact Stepper & Restock Button (Right)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left: Complete Stock Status / Quantity Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isLow
+                          ? Colors.white.withValues(alpha: 0.35)
+                          : Colors.white.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      isLow ? 'Low: ${item.displayStock}' : item.displayStock,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+
+                  // Right: Compact Stepper [- 1 +] and Restock Button
+                  Container(
+                    height: 25,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.24),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Stepper [-]
+                        TactileTap(
+                          onTap: () => widget.onUpdatePantryQuantity(item, item.quantity - 1),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                            child: Icon(Icons.remove_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                        // Quantity Counter
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: Text(
+                            '${item.quantity}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        // Stepper [+]
+                        TactileTap(
+                          onTap: () => widget.onUpdatePantryQuantity(item, item.quantity + 1),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                            child: Icon(Icons.add_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+
+                        // Hairline Divider
+                        Container(width: 1, height: 13, color: Colors.white.withValues(alpha: 0.25)),
+
+                        // Restock Button
+                        TactileTap(
+                          onTap: () {
+                            widget.onPushToRestockList(item);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Added ${item.name} to cart',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                backgroundColor: AppColors.textPrimary,
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            child: Icon(
+                              Icons.add_shopping_cart_rounded,
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
           const SizedBox(height: 8),
 
-          // 2. Center Food Photograph (as in image.png)
+          // 2. Food Photograph filling the entire bottom canvas
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(11),
               child: Image.network(
                 imageUrl,
                 width: double.infinity,
@@ -993,121 +1430,6 @@ class _PantryInventoryModalState extends State<PantryInventoryModal> {
                 },
               ),
             ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // 3. Bottom Controls: Stock Quantity Pill on Left + Compact Stepper (- 1 +) on Right
-          /* PREVIOUS STRETCHED STEPPER LOGIC - COMMENTED OUT AS PER RULE
-          Container(
-            height: 30,
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.24), ...),
-            child: Row(
-              children: [
-                Icon(Icons.remove_rounded, ...),
-                Expanded(child: Center(child: Text('${item.quantity}'))),
-                Icon(Icons.add_rounded, ...),
-                ...,
-              ],
-            ),
-          ),
-          */
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Left: Quantity / Stock badge (e.g. "250 g" or "Low: 1 kg")
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isLow
-                      ? Colors.white.withValues(alpha: 0.35)
-                      : Colors.white.withValues(alpha: 0.24),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  isLow ? 'Low: ${item.displayStock}' : item.displayStock,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              // Right: Snug, Non-stretched Stepper (- 1 +) and Restock Button
-              Container(
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.24),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Stepper [-]
-                    TactileTap(
-                      onTap: () => widget.onUpdatePantryQuantity(item, item.quantity - 1),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        child: Icon(Icons.remove_rounded, size: 13, color: Colors.white),
-                      ),
-                    ),
-                    // Quantity Number in between (- 1 +)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(
-                        '${item.quantity}',
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    // Stepper [+]
-                    TactileTap(
-                      onTap: () => widget.onUpdatePantryQuantity(item, item.quantity + 1),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        child: Icon(Icons.add_rounded, size: 13, color: Colors.white),
-                      ),
-                    ),
-
-                    // Hairline Divider
-                    Container(width: 1, height: 14, color: Colors.white.withValues(alpha: 0.2)),
-
-                    // Restock Button
-                    TactileTap(
-                      onTap: () {
-                        widget.onPushToRestockList(item);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Added ${item.name} to cart',
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                            backgroundColor: AppColors.textPrimary,
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        child: Icon(
-                          Icons.add_shopping_cart_rounded,
-                          size: 13,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
@@ -8,15 +9,19 @@ import '../services/neon_db_service.dart';
 import '../services/auth_service.dart';
 import '../screens/meal_planner_screen.dart';
 import '../screens/meal_calendar_screen.dart';
+import '../screens/pantry_inventory_screen.dart';
+import '../screens/saved_recipes_screen.dart';
+import '../screens/shop_catalog_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../services/openrouter_service.dart';
 import '../services/ingredient_sanitizer.dart';
 import '../widgets/shopping_list_drawer.dart';
 import '../widgets/saved_recipes_modal.dart';
 import '../widgets/pantry_inventory_modal.dart';
+import '../widgets/user_profile_modal.dart';
 import '../widgets/receipt_importer_modal.dart';
 import '../widgets/tactile_tap.dart';
-import '../widgets/kichook_logo.dart';
+import '../widgets/lino_logo.dart';
 import '../widgets/textured_background.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -87,9 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       await NeonDbService.initDatabase();
 
-      final activeId = session['id'] ?? 'user_kichook_primary';
-      final activeEmail = session['email'] ?? 'chef@kichook.app';
-      final activeFullName = session['fullName'] ?? 'Chef';
+      final activeId = session['id'] ?? 'user_lino_primary';
+      final activeEmail = session['email'] ?? 'user@lino.app';
+      final activeFullName = session['fullName'] ?? 'User';
       final activeHousehold = session['householdName'] ?? 'My Kitchen';
       final activeDiet = session['dietPreference'] ?? 'Veg';
       final activeSize = session['householdSize'] ?? '2';
@@ -215,6 +220,16 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           _allItems[idx] = _allItems[idx].copyWith(quantity: newQty);
         }
+      }
+    });
+    NeonDbService.syncInventoryToCloud(_allItems);
+  }
+
+  void _updateItemUnit(GroceryItem item, String newUnit) {
+    setState(() {
+      final idx = _allItems.indexWhere((i) => i.id == item.id);
+      if (idx != -1) {
+        _allItems[idx] = _allItems[idx].copyWith(selectedUnit: newUnit);
       }
     });
     NeonDbService.syncInventoryToCloud(_allItems);
@@ -432,358 +447,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showUserProfileModal() {
-    final fullName = _userProfile['fullName'] ?? 'Chef';
-    final email = _userProfile['email'] ?? 'Account';
-    // final household = _userProfile['householdName'] ?? 'My Kitchen';
-    final photoUrl = _userProfile['photoUrl'];
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-
-            // Profile Header
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
-                  child: photoUrl == null || photoUrl.isEmpty
-                      ? Text(
-                          fullName.isNotEmpty ? fullName[0].toUpperCase() : 'K',
-                          style: const TextStyle(
-                            fontFamily: 'Funnel Display',
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF059669),
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fullName,
-                        style: const TextStyle(
-                          fontFamily: 'Funnel Display',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        email,
-                        style: const TextStyle(
-                          fontFamily: 'Funnel Display',
-                          fontSize: 13,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-            const Divider(height: 1, color: AppColors.border),
-            const SizedBox(height: 16),
-
-            // DIETARY PREFERENCE SELECTOR (Personalization)
-            StatefulBuilder(
-              builder: (context, setProfileModalState) {
-                String currentDiet = _userProfile['dietPreference'] ?? 'Veg';
-                String currentSize = _userProfile['householdSize'] ?? '2';
-
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: AppRadii.lgBorder,
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'DIETARY PREFERENCE',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              currentDiet,
-                              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: ['Veg', 'Non-Veg', 'Jain', 'Eggetarian', 'Vegan'].map((diet) {
-                          final isSel = currentDiet == diet;
-                          return TactileTap(
-                            onTap: () async {
-                              setProfileModalState(() {
-                                currentDiet = diet;
-                              });
-                              setState(() {
-                                _userProfile['dietPreference'] = diet;
-                              });
-                              await AuthService.updatePersonalization(
-                                dietPreference: diet,
-                                householdSize: currentSize,
-                                appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
-                                exclusions: _userProfile['exclusions'] ?? '',
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.primary : AppColors.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: isSel ? AppColors.primary : AppColors.border),
-                              ),
-                              child: Text(
-                                diet,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? Colors.white : AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Household Size
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'HOUSEHOLD MEMBERS',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: Row(
-                              children: [
-                                TactileTap(
-                                  onTap: () async {
-                                    final currentVal = int.tryParse(currentSize) ?? 2;
-                                    if (currentVal > 1) {
-                                      final newVal = '${currentVal - 1}';
-                                      setProfileModalState(() => currentSize = newVal);
-                                      setState(() => _userProfile['householdSize'] = newVal);
-                                      await AuthService.updatePersonalization(
-                                        dietPreference: currentDiet,
-                                        householdSize: newVal,
-                                        appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
-                                        exclusions: _userProfile['exclusions'] ?? '',
-                                      );
-                                    }
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Icon(Icons.remove_rounded, size: 16, color: AppColors.textPrimary),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Text(
-                                    currentSize == '1' ? '1 Person' : '$currentSize People',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                                  ),
-                                ),
-                                TactileTap(
-                                  onTap: () async {
-                                    final currentVal = int.tryParse(currentSize) ?? 2;
-                                    final newVal = '${currentVal + 1}';
-                                    setProfileModalState(() => currentSize = newVal);
-                                    setState(() => _userProfile['householdSize'] = newVal);
-                                    await AuthService.updatePersonalization(
-                                      dietPreference: currentDiet,
-                                      householdSize: newVal,
-                                      appliances: _userProfile['appliances'] ?? 'Gas Stove,Kadai / Pan',
-                                      exclusions: _userProfile['exclusions'] ?? '',
-                                    );
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Icon(Icons.add_rounded, size: 16, color: AppColors.textPrimary),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            // Stats row
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_pantryItems.length}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryDark,
-                          ),
-                        ),
-                        const Text(
-                          'In Stock Items',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_savedRecipes.length}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.accentBlue,
-                          ),
-                        ),
-                        const Text(
-                          'Saved Recipes',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Log out button
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: TactileTap(
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await AuthService.logout();
-                  if (mounted) {
-                    Navigator.of(context).pushReplacementNamed('/auth');
-                  }
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.6)),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
-                      SizedBox(width: 6),
-                      Text(
-                        'Log Out',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.danger,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      builder: (ctx) => UserProfileModal(
+        userProfile: _userProfile,
+        inStockCount: _pantryItems.length,
+        savedRecipesCount: _savedRecipes.length,
+        onProfileUpdated: (updated) {
+          setState(() {
+            _userProfile = updated;
+          });
+        },
       ),
     );
   }
@@ -793,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return 'Chef';
       case 1:
-        return 'Meal Calendar';
+        return 'Calendar';
       case 2:
         return 'Kitchen Inventory';
       case 3:
@@ -801,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return 'Grocery Catalog';
       default:
-        return 'Meal Calendar';
+        return 'Calendar';
     }
   }
 
@@ -810,35 +486,43 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Row(
-      */
-      /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0),
       */
       appBar: AppBar(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
         backgroundColor: AppColors.background,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Row(
           children: [
-            const KichookLogo(
+            const LinoLogo(
               size: 32,
               withContainer: true,
             ),
             const SizedBox(width: 10),
+            /* PREVIOUS SPACE GROTESK TITLE - COMMENTED OUT AS PER RULE
             Text(
               _currentAppBarTitle,
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0F172A),
+                color: AppColors.textPrimary,
+              ),
+            ),
+            */
+            Text(
+              _currentAppBarTitle,
+              style: GoogleFonts.poppins(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
@@ -886,22 +570,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
+                    color: AppColors.primaryDark,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0F172A).withValues(alpha: 0.25),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                    boxShadow: AppShadows.lg,
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
+                        /* PREVIOUS GREEN CART BADGE - COMMENTED OUT AS PER RULE
                         decoration: const BoxDecoration(
                           color: Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                        ),
+                        */
+                        decoration: const BoxDecoration(
+                          color: AppColors.accentBlue,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
@@ -925,7 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontFamily: 'Funnel Display',
                                 fontSize: 11,
-                                color: Color(0xFF94A3B8),
+                                color: AppColors.textMuted,
                               ),
                             ),
                           ],
@@ -937,10 +621,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontFamily: 'Funnel Display',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
-                          color: Color(0xFF10B981),
-                          */
-                          color: AppColors.primary,
+                          color: AppColors.accentBlue,
                         ),
                       ),
                     ],
@@ -958,17 +639,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
-              blurRadius: 12,
-              offset: const Offset(0, -4),
-            ),
-          ],
+          color: AppColors.surface,
+          border: const Border(top: BorderSide(color: AppColors.border, width: 0.7)),
         ),
         child: BottomNavigationBar(
           currentIndex: _activeTabIndex,
+          backgroundColor: AppColors.surface,
           onTap: (index) => setState(() => _activeTabIndex = index),
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.textSecondary,
@@ -1131,10 +807,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ==========================================
-  // TAB 2: 📦 KITCHEN PANTRY
+  // TAB 2: 📦 KITCHEN PANTRY (DEDICATED SCREEN)
   // ==========================================
   Widget _buildPantryTab() {
-    return PantryInventoryModal(
+    return PantryInventoryScreen(
       pantryItems: _pantryItems,
       isLoading: _isPantryLoading,
       onOpenReceiptScanner: _showReceiptImporterSheet,
@@ -1198,10 +874,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ==========================================
-  // TAB 3: 📖 SAVED RECIPES & COOKBOOKS
+  // TAB 3: 📖 SAVED RECIPES & COOKBOOKS (DEDICATED SCREEN)
   // ==========================================
   Widget _buildSavedRecipesTab() {
-    return SavedRecipesModal(
+    return SavedRecipesScreen(
       initialRecipes: _savedRecipes,
       onDeleteRecipe: (recipe) {
         setState(() => _savedRecipes.removeWhere((r) => r.id == recipe.id));
@@ -1219,14 +895,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ==========================================
-  // TAB 4: 🛒 SHOP TAB (AIRBNB-STYLED 2-COLUMN CARDS WITH ROBUST UNIT SELECTOR)
+  // TAB 4: 🛒 SHOP TAB (DEDICATED SCREEN IN lib/screens/shop_catalog_screen.dart)
   // ==========================================
   Widget _buildShopTab() {
-    final shopItems = _filteredShopItems;
+    return ShopCatalogScreen(
+      allCatalogItems: _allItems,
+      onToggleItemAdded: _toggleItemAdded,
+      onUpdateItemQuantity: _updateItemQuantity,
+      onUpdateItemUnit: _updateItemUnit,
+      onOpenCart: _showCartSheet,
+    );
+  }
 
+  /* PREVIOUS INLINE SHOP TAB & AIRBNB CARDS - COMMENTED OUT AS PER RULE & REFACTORED TO lib/screens/shop_catalog_screen.dart
+  Widget _buildShopTab_Legacy() {
+    final shopItems = _filteredShopItems;
     return Column(
       children: [
-        // Top Search Input
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
           child: SizedBox(
@@ -1235,44 +920,21 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _shopSearchController,
               onChanged: (val) => setState(() => _shopSearchQuery = val),
               style: const TextStyle(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: 'Search items in Shop (e.g. Rice, Haldi, Milk)...',
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
-                suffixIcon: _shopSearchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.textSecondary),
-                        onPressed: () {
-                          setState(() {
-                            _shopSearchController.clear();
-                            _shopSearchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
+              decoration: const InputDecoration(
+                hintText: 'Search items in Shop (such as Rice, Haldi, Milk)',
+                prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
                 filled: true,
                 fillColor: AppColors.surface,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: const OutlineInputBorder(
-                  borderRadius: AppRadii.mdBorder,
-                  borderSide: BorderSide(color: AppColors.border),
-                ),
-                enabledBorder: const OutlineInputBorder(
-                  borderRadius: AppRadii.mdBorder,
-                  borderSide: BorderSide(color: AppColors.border),
-                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
             ),
           ),
         ),
-
         const Divider(height: 1, color: AppColors.border),
-
-        // Main Body: Left Category Sidebar + Right 2-Column Product Grid
         Expanded(
           child: Row(
             children: [
-              // Left Vertical Category Sidebar
               Container(
                 width: 82,
                 color: AppColors.surface,
@@ -1281,39 +943,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final cat = ItemCategory.values[index];
                     final isSelected = _selectedShopCategory == cat;
-
                     return TactileTap(
                       onTap: () => setState(() => _selectedShopCategory = cat),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 140),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primaryLight : Colors.transparent,
-                          border: Border(
-                            left: BorderSide(
-                              color: isSelected ? AppColors.primary : Colors.transparent,
-                              width: 3.5,
-                            ),
-                          ),
-                        ),
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              cat.icon,
-                              size: 18,
-                              color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              cat.label,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                color: isSelected ? AppColors.primaryDark : AppColors.textSecondary,
-                              ),
-                            ),
+                            Icon(cat.icon, size: 18),
+                            Text(cat.label, style: const TextStyle(fontSize: 10)),
                           ],
                         ),
                       ),
@@ -1321,36 +958,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-
               const VerticalDivider(width: 1, color: AppColors.border),
-
-              // Right 2-Column Airbnb-styled Product Grid
               Expanded(
-                child: shopItems.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.search_off_rounded, size: 36, color: AppColors.textMuted),
-                            SizedBox(height: 8),
-                            Text('No items found in category', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                          ],
-                        ),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 0.64,
-                        ),
-                        itemCount: shopItems.length,
-                        itemBuilder: (context, index) {
-                          final item = shopItems[index];
-                          return _buildAirbnbShopCard(item);
-                        },
-                      ),
+                child: GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.74,
+                  ),
+                  itemCount: shopItems.length,
+                  itemBuilder: (context, index) => _buildAirbnbShopCard_Legacy(shopItems[index]),
+                ),
               ),
             ],
           ),
@@ -1359,10 +979,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ==========================================
-  // AIRBNB-STYLED GROCERY CARD (Clean, Tactile, Zero Dropdown Crashes)
-  // ==========================================
-  Widget _buildAirbnbShopCard(GroceryItem item) {
+  Widget _buildAirbnbShopCard_Legacy(GroceryItem item) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -1370,226 +987,8 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: item.isAdded ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border),
         boxShadow: AppShadows.card,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 1. Hero Image / Media Area with subtle 1px ambient outline
-          Container(
-            height: 76,
-            margin: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: item.accentColor.withValues(alpha: 0.12),
-              borderRadius: AppRadii.mdBorder,
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: item.imagePath != null
-                      ? ClipRRect(
-                          borderRadius: AppRadii.mdBorder,
-                          child: Image.asset(
-                            item.imagePath!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            errorBuilder: (_, __, ___) => _buildCenteredTextTile(item),
-                          ),
-                        )
-                      : _buildCenteredTextTile(item),
-                ),
-                // Top Right In-Cart Indicator Dot or Pill
-                if (item.isAdded)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: AppShadows.soft,
-                      ),
-                      child: Text(
-                        '${item.quantity} in list',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // 2. Card Content (Names & Safe Unit Pill)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.nameEn,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        item.nameHi,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // 3. Robust Airbnb-style Unit Selector Pill (Zero Dropdown Assertion Errors)
-                  TactileTap(
-                    onTap: () {
-                      final units = item.availableUnits.toSet().toList();
-                      if (units.isNotEmpty) {
-                        final currentIdx = units.indexOf(item.selectedUnit);
-                        final nextIdx = (currentIdx + 1) % units.length;
-                        setState(() {
-                          item.selectedUnit = units[nextIdx];
-                        });
-                      }
-                    },
-                    child: Container(
-                      height: 24,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceMuted,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.selectedUnit,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.swap_vert_rounded, size: 13, color: AppColors.textSecondary),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 4. ADD / Stepper Button with Tactile Scale (0.96)
-                  if (!item.isAdded)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 28,
-                      child: TactileTap(
-                        onTap: () => _toggleItemAdded(item),
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: AppShadows.soft,
-                          ),
-                          child: const Text(
-                            '+ ADD',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryDark,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          TactileTap(
-                            onTap: () => _updateItemQuantity(item, item.quantity - 1),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              child: Icon(Icons.remove_rounded, color: Colors.white, size: 14),
-                            ),
-                          ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              '${item.quantity}',
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                          TactileTap(
-                            onTap: () => _updateItemQuantity(item, item.quantity + 1),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              child: Icon(Icons.add_rounded, color: Colors.white, size: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+      child: Center(child: Text(item.nameEn)),
     );
   }
-
-  // Centered Text Tile Helper for Items without photos
-  Widget _buildCenteredTextTile(GroceryItem item) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(item.category.icon, color: item.accentColor, size: 22),
-            const SizedBox(height: 3),
-            Flexible(
-              child: Text(
-                item.nameEn,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                  height: 1.15,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  */
 }

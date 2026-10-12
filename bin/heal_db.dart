@@ -21,7 +21,8 @@ void main() async {
 
     // 1. Get or create primary user in users table
     final userResult = await connection.execute('SELECT id, email FROM users ORDER BY created_at ASC LIMIT 1;');
-    String primaryUserId = 'user_kichook_primary';
+    // String primaryUserId = 'user_kichook_primary';
+    String primaryUserId = 'user_lino_primary';
     if (userResult.isNotEmpty) {
       primaryUserId = userResult.first[0] as String;
       print('Found primary user in database: $primaryUserId (${userResult.first[1]})');
@@ -34,7 +35,7 @@ void main() async {
         ),
         parameters: {
           'id': primaryUserId,
-          'email': 'chef@kichook.app',
+          'email': 'chef@lino.app',
           'full_name': 'Chef',
           'household_name': 'My Kitchen',
           'diet': 'Veg',

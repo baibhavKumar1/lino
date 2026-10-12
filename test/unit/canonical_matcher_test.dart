@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/screens/onboarding_screen.dart';
+// import 'package:kichook/screens/onboarding_screen.dart';
+import 'package:lino/screens/onboarding_screen.dart';
 
 void main() {
   group('CanonicalItemMatcher Tests', () {

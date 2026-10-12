@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kichook/models/grocery_item.dart';
-import 'package:kichook/models/chat_message.dart';
-import 'package:kichook/services/openrouter/chef_agent_service.dart';
-import 'package:kichook/services/openrouter/meal_recipe.dart';
+// import 'package:kichook/models/grocery_item.dart';
+// import 'package:kichook/services/openrouter/chef_agent_service.dart';
+import 'package:lino/models/grocery_item.dart';
+import 'package:lino/services/openrouter/chef_agent_service.dart';
 
 void main() {
-  group('Kichook Chef Agent Live Functional Evaluations (100% Free Models)', () {
+  group('Lino Chef Agent Live Functional Evaluations (100% Free Models)', () {
     
     test('Guarantee: Zero-Restock In-Pantry Lock (missingItems == [])', () async {
       final inventory = [

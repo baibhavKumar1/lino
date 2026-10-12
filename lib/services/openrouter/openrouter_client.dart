@@ -12,19 +12,28 @@ class OpenRouterClient {
     defaultValue: 'https://openrouter.ai/api/v1/chat/completions',
   );
 
-  // Fast Verified 100% Free Zero-Cost ($0.00) Live Endpoints on OpenRouter:
+  /* PREVIOUS MODEL LIST - COMMENTED OUT AS PER RULE
   static const List<String> models = [
     'google/gemma-4-26b-a4b-it:free',
     'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
     'openrouter/free',
     'thinkingmachines/inkling-small:free',
   ];
+  */
+
+  // Fast Verified 100% Free Zero-Cost ($0.00) Live Endpoints on OpenRouter:
+  static const List<String> models = [
+    'openrouter/free',
+    'google/gemma-4-26b-a4b-it:free',
+    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    'poolside/laguna-s-2.1:free',
+  ];
 
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer $apiKey',
-    'HTTP-Referer': 'https://kichook.app',
-    'X-Title': 'Kichook Smart Kitchen Assistant',
+    'HTTP-Referer': 'https://lino.app',
+    'X-Title': 'Lino Smart Grocery & Kitchen Co-pilot',
   };
 
   static Future<http.Response> postChatCompletion({
@@ -64,7 +73,20 @@ class OpenRouterClient {
         debugPrint('📋 FULL RAW OPENROUTER OUTPUT:\n${response.body}');
         debugPrint('===============================================================');
 
+        /* PREVIOUS STATUS CODE CHECK ONLY - COMMENTED OUT AS PER RULE
         if (response.statusCode >= 200 && response.statusCode < 300) {
+          return response;
+        }
+        */
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map && decoded.containsKey('error')) {
+              debugPrint('⚠️ [OpenRouterClient] Model $model returned status 200 with embedded error: ${decoded['error']}');
+              lastResponse = response;
+              continue;
+            }
+          } catch (_) {}
           return response;
         }
         lastResponse = response;

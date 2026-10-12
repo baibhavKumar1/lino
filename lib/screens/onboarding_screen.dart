@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
@@ -6,7 +7,7 @@ import '../models/pantry_item.dart';
 import '../models/user_preferences.dart';
 import '../services/neon_db_service.dart';
 import '../services/auth_service.dart';
-import '../widgets/kichook_logo.dart';
+import '../widgets/lino_logo.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -502,7 +503,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           controller: qtyCtrl,
           keyboardType: TextInputType.number,
           autofocus: true,
+          /* PREVIOUS FUNNEL DISPLAY STYLE - COMMENTED OUT AS PER RULE
           style: const TextStyle(fontFamily: 'Funnel Display', fontSize: 18, fontWeight: FontWeight.w700),
+          */
+          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700),
           decoration: InputDecoration(
             labelText: 'Quantity (${item.unit})',
             hintText: 'Enter quantity',
@@ -613,11 +617,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    /* PREVIOUS SCAFFOLD - COMMENTED OUT AS PER RULE
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
+      body: SafeArea(...),
+    );
+    */
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
             // ==========================================
             // TOP WAYFINDING PROGRESS BAR (Zero Dots)
             // ==========================================
@@ -640,13 +658,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             child: const Icon(Icons.kitchen_rounded, color: AppColors.primaryDark, size: 18),
                           ),
                           */
-                          const KichookLogo(
+                          const LinoLogo(
                             size: 26,
                             withContainer: true,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'KICHOOK ONBOARDING',
+                            'LINO ONBOARDING',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -791,7 +809,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   // ==========================================
@@ -822,7 +841,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Personalize your cuisine preferences so Kichook can recommend relevant pantry items.',
+            'Personalize your cuisine preferences so Lino can recommend relevant pantry items.',
             style: TextStyle(
               fontFamily: 'Funnel Display',
               fontSize: 13,
@@ -1784,13 +1803,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             icon: Icons.notifications_active_rounded,
             color: AppColors.warning,
             title: 'Low Stock Reminders',
-            description: 'Kichook automatically alerts you when essentials run low.',
+            description: 'Lino automatically alerts you when essentials run low.',
           ),
           const SizedBox(height: 10),
           _buildFeatureCard(
             icon: Icons.shopping_cart_rounded,
             color: AppColors.primary,
-            title: '1-Tap Restock Cart',
+            title: 'Restock Cart',
             description: 'Add missing ingredients directly into your shopping cart.',
           ),
           const SizedBox(height: 10),

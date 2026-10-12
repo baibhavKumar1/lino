@@ -30,7 +30,7 @@ class ShoppingListDrawer extends StatelessWidget {
     if (addedItems.isEmpty) return;
 
     final buffer = StringBuffer();
-    buffer.writeln('🛒 KICHOOK RESTOCK LIST (${addedItems.length} Items):');
+    buffer.writeln('🛒 LINO RESTOCK LIST (${addedItems.length} Items):');
     for (var item in addedItems) {
       /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
       buffer.writeln('- ${item.nameEn} (${item.nameHi}) — ${item.quantity} ${item.selectedUnit}');
@@ -148,9 +148,16 @@ class ShoppingListDrawer extends StatelessWidget {
         final checkedCount = addedItems.where((item) => item.isChecked).length;
 
         return Container(
+          /* PREVIOUS FLAT DECORATION - COMMENTED OUT AS PER RULE
           decoration: const BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          */
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: AppShadows.modal,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

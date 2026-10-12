@@ -40,7 +40,10 @@ class GroceryItem {
     this.quantity = 1,
     this.isAdded = false,
     this.isChecked = false,
+    /* PREVIOUS GREEN ACCENT - COMMENTED OUT AS PER RULE
     this.accentColor = const Color(0xFF10B981),
+    */
+    this.accentColor = const Color(0xFF0066FF),
     this.imagePath,
   });
 

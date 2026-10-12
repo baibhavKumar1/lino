@@ -116,7 +116,7 @@ class MealCalendarEvent {
 
     return MealCalendarEvent(
       id: json['id'] as String? ?? 'event_${DateTime.now().millisecondsSinceEpoch}',
-      userId: json['user_id'] as String? ?? 'user_kichook_primary',
+      userId: json['user_id'] as String? ?? 'user_lino_primary',
       eventDate: DateTime(parsedDate.year, parsedDate.month, parsedDate.day),
       mealSlot: CalendarMealSlot.fromString(json['meal_slot'] as String? ?? 'dinner'),
       dishName: json['dish_name'] as String? ?? 'Planned Meal',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/grocery_item.dart';
 import '../screens/template_detail_screen.dart';
+import '../theme/app_theme.dart';
 
 class SavedTemplatesModal extends StatelessWidget {
   final List<SavedListTemplate> templates;
@@ -132,6 +133,7 @@ class SavedTemplatesModal extends StatelessWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
+                          /* PREVIOUS INLINE SHADOW - COMMENTED OUT AS PER RULE
                           boxShadow: [
                             BoxShadow(
                               color: const Color(0xFF0F172A).withValues(alpha: 0.04),
@@ -139,6 +141,8 @@ class SavedTemplatesModal extends StatelessWidget {
                               offset: const Offset(0, 4),
                             ),
                           ],
+                          */
+                          boxShadow: AppShadows.md,
                         ),
                         padding: const EdgeInsets.all(16),
                         child: Column(

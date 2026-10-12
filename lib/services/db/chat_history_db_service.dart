@@ -251,7 +251,8 @@ class ChatHistoryDbService {
     String? effectiveUserId = userId;
     if (effectiveUserId == null || effectiveUserId.isEmpty) {
       final session = await AuthService.getActiveUserSession();
-      effectiveUserId = session['id'] ?? 'user_kichook_primary';
+      // PREVIOUS DEFAULT USER ID: user_kichook_primary
+      effectiveUserId = session['id'] ?? 'user_lino_primary';
     }
 
     final today = DateTime.now().toIso8601String().split('T').first;

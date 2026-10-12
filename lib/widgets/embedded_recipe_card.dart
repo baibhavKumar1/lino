@@ -158,7 +158,7 @@ class EmbeddedRecipeCard extends StatelessWidget {
                             children: [
                               Icon(Icons.add_shopping_cart_rounded, size: 11, color: Colors.white),
                               SizedBox(width: 3),
-                              Text('1-Tap Add to Cart', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                              Text('Add to Cart', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
                             ],
                           ),
                         ),
