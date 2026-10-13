@@ -18,10 +18,24 @@ class ChatMessage {
   final List<String> suggestions;
   final DateTime createdAt;
 
+  /* PREVIOUS CONSTRUCTOR WITHOUT SESSION ID - COMMENTED OUT AS PER RULE
   ChatMessage({
     required this.id,
     required this.role,
     required this.content,
+    this.recipes = const [],
+    this.suggestions = const [],
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+  */
+
+  final String sessionId;
+
+  ChatMessage({
+    required this.id,
+    required this.role,
+    required this.content,
+    this.sessionId = 'default_session',
     this.recipes = const [],
     this.suggestions = const [],
     DateTime? createdAt,
@@ -31,9 +45,23 @@ class ChatMessage {
   bool get isAssistant => role == MessageRole.assistant;
   bool get hasRecipes => recipes.isNotEmpty;
 
+  /* PREVIOUS TOJSON WITHOUT SESSION ID - COMMENTED OUT AS PER RULE
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'role': role.role,
+      'content': content,
+      'recipes': recipes.map((r) => r.toJson()).toList(),
+      'suggestions': suggestions,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+  */
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'session_id': sessionId,
       'role': role.role,
       'content': content,
       'recipes': recipes.map((r) => r.toJson()).toList(),
@@ -115,8 +143,22 @@ class ChatMessage {
       orElse: () => MessageRole.user,
     );
 
+    /* PREVIOUS RETURN WITHOUT SESSION ID - COMMENTED OUT AS PER RULE
     return ChatMessage(
       id: json['id'] as String? ?? 'msg_${DateTime.now().microsecondsSinceEpoch}',
+      role: role,
+      content: cleanContent,
+      recipes: parsedRecipes,
+      suggestions: parsedSuggestions,
+      createdAt: json['created_at'] != null || json['createdAt'] != null
+          ? DateTime.tryParse(json['created_at'] ?? json['createdAt']) ?? DateTime.now()
+          : DateTime.now(),
+    );
+    */
+
+    return ChatMessage(
+      id: json['id'] as String? ?? 'msg_${DateTime.now().microsecondsSinceEpoch}',
+      sessionId: json['session_id'] as String? ?? json['sessionId'] as String? ?? 'default_session',
       role: role,
       content: cleanContent,
       recipes: parsedRecipes,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'tactile_tap.dart';
@@ -341,7 +342,46 @@ class _UserProfileModalState extends State<UserProfileModal> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // Privacy Policy button
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: TactileTap(
+              onTap: () async {
+                final uri = Uri.parse('https://baibhavkumar1.github.io/lino/');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.privacy_tip_outlined, color: AppColors.primary, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Privacy Policy',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
 
           // Log out button
           SizedBox(

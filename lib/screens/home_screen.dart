@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
 import '../models/saved_recipe.dart';
 import '../models/pantry_item.dart';
+import '../models/meal_calendar_event.dart';
 import '../services/neon_db_service.dart';
 import '../services/auth_service.dart';
 import '../screens/meal_planner_screen.dart';
@@ -16,13 +17,14 @@ import '../screens/onboarding_screen.dart';
 import '../services/openrouter_service.dart';
 import '../services/ingredient_sanitizer.dart';
 import '../widgets/shopping_list_drawer.dart';
-import '../widgets/saved_recipes_modal.dart';
-import '../widgets/pantry_inventory_modal.dart';
+// import '../widgets/saved_recipes_modal.dart';
+// import '../widgets/pantry_inventory_modal.dart';
 import '../widgets/user_profile_modal.dart';
 import '../widgets/receipt_importer_modal.dart';
-import '../widgets/tactile_tap.dart';
+// import '../widgets/tactile_tap.dart';
 import '../widgets/lino_logo.dart';
 import '../widgets/textured_background.dart';
+import '../widgets/home_dashboard_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,12 +34,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _activeTabIndex = 0; // 0: Meal Planner, 1: Kitchen Pantry, 2: Saved Recipes, 3: Shop
+  int _activeTabIndex = 0; // 0: Home Dashboard, 1: Meal Calendar, 2: Kitchen Pantry, 3: Saved Recipes, 4: Shop
 
   List<GroceryItem> _allItems = GroceryCatalog.getInitialItems();
   List<SavedListTemplate> _savedTemplates = [];
   List<SavedRecipe> _savedRecipes = [];
   List<PantryItem> _pantryItems = [];
+  List<MealCalendarEvent> _calendarEvents = [];
   Map<String, String?> _userProfile = {};
 
   bool _isPantryLoading = true;
@@ -127,14 +130,16 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
 
-      // Fast Parallel Fetch: Get user recipes and pantry concurrently in < 300ms
+      // Fast Parallel Fetch: Get user recipes, pantry, and calendar concurrently
       final results = await Future.wait([
         NeonDbService.fetchSavedRecipesFromCloud(userId: activeId),
         NeonDbService.fetchPantryFromCloud(userId: activeId),
+        MealCalendarDbService.fetchMealCalendarEvents(userId: activeId),
       ]);
 
       final cloudSavedRecipes = results[0] as List<SavedRecipe>;
       final cloudPantryItems = results[1] as List<PantryItem>;
+      final cloudEvents = results[2] as List<MealCalendarEvent>;
 
       if (mounted) {
         setState(() {
@@ -142,6 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (cloudPantryItems.isNotEmpty || _pantryItems.isEmpty) {
             _pantryItems = cloudPantryItems;
           }
+          _calendarEvents = cloudEvents;
           _userProfile = session;
           _isPantryLoading = false;
         });
@@ -164,39 +170,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _shopSearchController.dispose();
-    // NeonDbService.closeConnection(); // Keep connection alive across client navigation
     super.dispose();
   }
 
   int get _totalShoppingListCount => _allItems.where((item) => item.isAdded).length;
 
-  List<GroceryItem> get _filteredShopItems {
-    final q = _shopSearchQuery.toLowerCase().trim();
-    final canonicalQuery = q.isNotEmpty ? CanonicalItemMatcher.getCanonicalKey(q) : '';
-
-    return _allItems.where((item) {
-      final matchesCat = _selectedShopCategory == ItemCategory.all || item.category == _selectedShopCategory;
-      if (!matchesCat) return false;
-      if (q.isEmpty) return true;
-
-      final nameEn = item.nameEn.toLowerCase();
-      final nameHi = item.nameHi.toLowerCase();
-
-      // 1. Direct substring match
-      if (nameEn.contains(q) || nameHi.contains(q)) return true;
-
-      // 2. Canonical & Alias match (e.g. typing "cumin" finds "Jeera", "arhar" finds "Toor Dal", "dahi" finds "Curd")
-      if (canonicalQuery.isNotEmpty) {
-        final itemCanonicalEn = CanonicalItemMatcher.getCanonicalKey(item.nameEn);
-        final itemCanonicalHi = CanonicalItemMatcher.getCanonicalKey(item.nameHi);
-        if (itemCanonicalEn == canonicalQuery || itemCanonicalHi == canonicalQuery) {
-          return true;
-        }
-      }
-
-      return false;
-    }).toList();
-  }
+  // Note: Category and search filtering for Shop is delegated to ShopCatalogScreen
 
   void _toggleItemAdded(GroceryItem item) {
     setState(() {
@@ -467,9 +446,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _currentAppBarTitle {
     switch (_activeTabIndex) {
       case 0:
-        return 'Chef';
+        return 'Lino';
       case 1:
-        return 'Calendar';
+        return 'Meal Calendar';
       case 2:
         return 'Kitchen Inventory';
       case 3:
@@ -477,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return 'Grocery Catalog';
       default:
-        return 'Calendar';
+        return 'Lino';
     }
   }
 
@@ -506,16 +485,6 @@ class _HomeScreenState extends State<HomeScreen> {
               withContainer: true,
             ),
             const SizedBox(width: 10),
-            /* PREVIOUS SPACE GROTESK TITLE - COMMENTED OUT AS PER RULE
-            Text(
-              _currentAppBarTitle,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            */
             Text(
               _currentAppBarTitle,
               style: GoogleFonts.poppins(
@@ -528,13 +497,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          /* PREVIOUS LOGIC - COMMENTED OUT AS PER RULE
+          // Multi-Session AI Chef Chat Icon beside Profile
           IconButton(
-            icon: const Icon(Icons.account_circle_rounded, color: Color(0xFF10B981), size: 26),
-            tooltip: 'My Profile',
-            onPressed: _showUserProfileModal,
+            icon: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary, size: 24),
+            tooltip: 'AI Chef Assistant',
+            onPressed: _openChefAssistantModal,
           ),
-          */
           IconButton(
             icon: const Icon(Icons.account_circle_rounded, color: AppColors.primary, size: 26),
             tooltip: 'My Profile',
@@ -552,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IndexedStack(
             index: _activeTabIndex,
             children: [
-              _buildMealPlannerTab(),
+              _buildHomeDashboardTab(),
               _buildCalendarTab(),
               _buildPantryTab(),
               _buildSavedRecipesTab(),
@@ -654,8 +622,8 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10.5),
           items: [
             const BottomNavigationBarItem(
-              icon: Icon(Icons.auto_awesome_rounded),
-              label: 'Chef',
+              icon: Icon(Icons.home_rounded),
+              label: 'Home',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month_rounded),
@@ -776,11 +744,109 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _openChefAssistantModal() {
+    final stockedPantryGroceryItems = _pantryItems.map((p) => GroceryItem(
+      id: p.id,
+      nameEn: p.name,
+      nameHi: p.name,
+      category: p.category,
+      availableUnits: [p.unit],
+      selectedUnit: p.unit,
+      quantity: p.quantity,
+      isAdded: true,
+    )).toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.92,
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28, color: AppColors.primary),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+            title: Text(
+              'Lino AI Chef',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
+            centerTitle: true,
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(1),
+              child: Divider(height: 1, color: AppColors.border),
+            ),
+          ),
+          body: MealPlannerScreen(
+            inventory: stockedPantryGroceryItems,
+            onAddMissingItemsToList: _addMissingRecipeItemsToShoppingList,
+            onViewSavedPresets: () {
+              Navigator.pop(ctx);
+              setState(() => _activeTabIndex = 3);
+            },
+            onMealCooked: (recipe) => _stockCookedRecipeDepletion(recipe),
+            onSaveRecipe: (recipe) {
+              setState(() {
+                _savedRecipes.add(recipe);
+              });
+              Future.microtask(() => NeonDbService.syncSavedRecipeToCloud(recipe));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   // ==========================================
-  // TAB 1: 🍽️ MEAL PLANNER (FULL FEATURED SCREEN)
+  // TAB 0: 🏠 HOME DASHBOARD (NEXT MEAL & DISCOVERY)
   // ==========================================
+  Widget _buildHomeDashboardTab() {
+    return HomeDashboardView(
+      calendarEvents: _calendarEvents,
+      pantryItems: _pantryItems,
+      allCatalogItems: _allItems,
+      savedRecipes: _savedRecipes,
+      userProfile: _userProfile,
+      onOpenChatAssistant: _openChefAssistantModal,
+      onOpenCart: _showCartSheet,
+      onOpenCalendar: () => setState(() => _activeTabIndex = 1),
+      onOpenShop: () => setState(() => _activeTabIndex = 4),
+      onMealCooked: (recipe) => _stockCookedRecipeDepletion(recipe),
+      onAddMissingToCart: (missingItems) => _addMissingRecipeItemsToShoppingList(missingItems),
+      onScheduleRecipe: (event) {
+        setState(() {
+          _calendarEvents.add(event);
+        });
+        NeonDbService.syncMealEventToCloud(event);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.primary,
+            behavior: SnackBarBehavior.floating,
+            // content: Text('Scheduled "${event.dishName}" for ${event.mealSlot.displayName}!'),
+            content: Text('Scheduled "${event.dishName}" for ${event.mealSlot.label}!'),
+          ),
+        );
+      },
+      onToggleCartItem: (item) => _toggleItemAdded(item),
+    );
+  }
+
+  /* PREVIOUS TAB 1 INLINE MEAL PLANNER - COMMENTED OUT AS PER RULE
   Widget _buildMealPlannerTab() {
-    // Pass strictly the user's actual stocked ingredients to AI Chef
     final stockedPantryGroceryItems = _pantryItems.map((p) => GroceryItem(
       id: p.id,
       nameEn: p.name,
@@ -805,6 +871,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+  */
 
   // ==========================================
   // TAB 2: 📦 KITCHEN PANTRY (DEDICATED SCREEN)
@@ -906,89 +973,4 @@ class _HomeScreenState extends State<HomeScreen> {
       onOpenCart: _showCartSheet,
     );
   }
-
-  /* PREVIOUS INLINE SHOP TAB & AIRBNB CARDS - COMMENTED OUT AS PER RULE & REFACTORED TO lib/screens/shop_catalog_screen.dart
-  Widget _buildShopTab_Legacy() {
-    final shopItems = _filteredShopItems;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-          child: SizedBox(
-            height: 42,
-            child: TextField(
-              controller: _shopSearchController,
-              onChanged: (val) => setState(() => _shopSearchQuery = val),
-              style: const TextStyle(fontSize: 13),
-              decoration: const InputDecoration(
-                hintText: 'Search items in Shop (such as Rice, Haldi, Milk)',
-                prefixIcon: Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
-                filled: true,
-                fillColor: AppColors.surface,
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-          ),
-        ),
-        const Divider(height: 1, color: AppColors.border),
-        Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 82,
-                color: AppColors.surface,
-                child: ListView.builder(
-                  itemCount: ItemCategory.values.length,
-                  itemBuilder: (context, index) {
-                    final cat = ItemCategory.values[index];
-                    final isSelected = _selectedShopCategory == cat;
-                    return TactileTap(
-                      onTap: () => setState(() => _selectedShopCategory = cat),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                        child: Column(
-                          children: [
-                            Icon(cat.icon, size: 18),
-                            Text(cat.label, style: const TextStyle(fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const VerticalDivider(width: 1, color: AppColors.border),
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 96),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.74,
-                  ),
-                  itemCount: shopItems.length,
-                  itemBuilder: (context, index) => _buildAirbnbShopCard_Legacy(shopItems[index]),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAirbnbShopCard_Legacy(GroceryItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadii.lgBorder,
-        border: Border.all(color: item.isAdded ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border),
-        boxShadow: AppShadows.card,
-      ),
-      child: Center(child: Text(item.nameEn)),
-    );
-  }
-  */
 }

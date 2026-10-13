@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../models/grocery_item.dart';
 import '../models/saved_recipe.dart';
 import '../models/chat_message.dart';
+import '../models/chat_session.dart';
 import '../models/user_preferences.dart';
 import '../services/openrouter_service.dart';
 import '../services/neon_db_service.dart';
@@ -38,6 +39,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
   final ScrollController _scrollController = ScrollController();
 
   List<ChatMessage> _messages = [];
+  List<ChatSession> _sessions = [];
+  String _activeSessionId = 'default_session';
+  String _activeSessionTitle = 'General Chef Chat';
+
   bool _isLoading = false;
   bool _isInitializing = true;
   String? _userId;
@@ -66,14 +71,32 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
     _loadUserContext();
   }
 
+  /* PREVIOUS SINGLE-SESSION INITIALIZATION - COMMENTED OUT AS PER RULE
   Future<void> _loadUserContext() async {
     final session = await AuthService.getActiveUserSession();
     final history = await NeonDbService.fetchChatHistory(userId: session['id']);
+    ...
+  }
+  */
+
+  Future<void> _loadUserContext() async {
+    final session = await AuthService.getActiveUserSession();
+    final sessions = await NeonDbService.fetchChatSessions(userId: session['id']);
+    final activeId = sessions.isNotEmpty ? sessions.first.id : 'default_session';
+    final activeTitle = sessions.isNotEmpty ? sessions.first.title : 'General Chef Chat';
+
+    final history = await NeonDbService.fetchChatHistory(
+      userId: session['id'],
+      sessionId: activeId,
+    );
 
     if (mounted) {
       setState(() {
         _userId = session['id'];
         _userProfile = session;
+        _sessions = sessions;
+        _activeSessionId = activeId;
+        _activeSessionTitle = activeTitle;
         _isInitializing = false;
         if (history.isNotEmpty) {
           _messages = history;
@@ -81,6 +104,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           _messages = [
             ChatMessage(
               id: 'welcome_${DateTime.now().millisecondsSinceEpoch}',
+              sessionId: activeId,
               role: MessageRole.assistant,
               content: 'Namaste! 🙏 I am your **Lino** culinary co-pilot.\n\nI tailor meal recommendations based on your in-stock pantry, dietary preferences, and cooking horizon.',
               suggestions: [
@@ -94,6 +118,214 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
       });
       _scrollToBottom();
     }
+  }
+
+  Future<void> _switchSession(ChatSession session) async {
+    setState(() {
+      _activeSessionId = session.id;
+      _activeSessionTitle = session.title;
+      _isLoading = true;
+    });
+    final history = await NeonDbService.fetchChatHistory(
+      userId: _userId,
+      sessionId: session.id,
+    );
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (history.isNotEmpty) {
+          _messages = history;
+        } else {
+          _messages = [
+            ChatMessage(
+              id: 'welcome_${DateTime.now().millisecondsSinceEpoch}',
+              sessionId: session.id,
+              role: MessageRole.assistant,
+              content: 'Session: **${session.title}** 🍳\n\nAsk me anything for this meal plan!',
+              suggestions: [
+                'Quick 15-min meal',
+                'What can I cook with in-stock items?',
+              ],
+            ),
+          ];
+        }
+      });
+      _scrollToBottom();
+    }
+  }
+
+  /* PREVIOUS DIALOG-BASED SESSION CREATOR - COMMENTED OUT AS PER RULE
+  Future<void> _createNewSession() async {
+    final titleController = TextEditingController();
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Start New Meal Chat Session', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: TextField(
+          controller: titleController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'e.g. Weekend Feast, Quick Dinner',
+            filled: true,
+            fillColor: AppColors.surfaceMuted,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () {
+              final t = titleController.text.trim();
+              Navigator.pop(ctx, t.isNotEmpty ? t : 'New Meal Plan');
+            },
+            child: const Text('Create', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    ...
+  }
+  */
+
+  Future<void> _createNewSession() async {
+    // Generate unique chat_id immediately and open conversation with default 'New Chat' title
+    final newChatId = 'chat_${DateTime.now().microsecondsSinceEpoch}';
+    const newChatTitle = 'New Chat';
+
+    final newSession = ChatSession(
+      id: newChatId,
+      title: newChatTitle,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    setState(() {
+      _sessions.insert(0, newSession);
+      _activeSessionId = newChatId;
+      _activeSessionTitle = newChatTitle;
+      _messages = [
+        ChatMessage(
+          id: 'welcome_${DateTime.now().microsecondsSinceEpoch}',
+          sessionId: newChatId,
+          role: MessageRole.assistant,
+          content: 'Starting **$newChatTitle** 🍳\n\nWhat are you craving or what meal would you like to prepare right now?',
+          suggestions: const [
+            'What can I make for dinner in 15m?',
+            'Use my in-stock ingredients',
+            'High-protein quick recipe',
+          ],
+        ),
+      ];
+    });
+
+    _scrollToBottom();
+  }
+
+  void _showSessionPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Chat Sessions',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
+                    ),
+                    TactileTap(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _createNewSession();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.add_rounded, size: 14, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text('+ New Chat', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1, color: AppColors.border),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 280),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _sessions.length,
+                    separatorBuilder: (_, __) => const Divider(height: 8, color: AppColors.borderLight),
+                    itemBuilder: (context, idx) {
+                      final s = _sessions[idx];
+                      final isSelected = s.id == _activeSessionId;
+                      return ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                        title: Text(
+                          s.title,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? AppColors.accentBlue : AppColors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${s.messageCount} messages / ${s.id == "default_session" ? "General" : "Custom"}',
+                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isSelected)
+                              const Icon(Icons.check_circle_rounded, color: AppColors.accentBlue, size: 18),
+                            if (!isSelected && s.id != 'default_session')
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 18),
+                                onPressed: () async {
+                                  await NeonDbService.deleteChatSession(s.id, userId: _userId);
+                                  setState(() => _sessions.removeWhere((item) => item.id == s.id));
+                                  setModalState(() {});
+                                },
+                              ),
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _switchSession(s);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -122,6 +354,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
     _textController.clear();
     final userMsg = ChatMessage(
       id: 'user_${DateTime.now().millisecondsSinceEpoch}',
+      sessionId: _activeSessionId,
       role: MessageRole.user,
       content: prompt,
     );
@@ -320,6 +553,70 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           onOpenTune: _showQuickSettingsSheet,
           onClearConversation: _clearConversation,
           onMaxCookTimeChanged: (time) => setState(() => _maxCookTimeMinutes = time),
+        ),
+
+        // 1.5 MULTI-SESSION CONVERSATION SWITCHER STRIP
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          color: AppColors.surface,
+          child: Row(
+            children: [
+              Expanded(
+                child: TactileTap(
+                  onTap: _showSessionPicker,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceMuted,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.forum_outlined, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _activeSessionTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TactileTap(
+                onTap: _createNewSession,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.accentBlue.withValues(alpha: 0.2)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.add_rounded, size: 14, color: AppColors.accentBlue),
+                      SizedBox(width: 4),
+                      Text(
+                        'New Chat',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accentBlue),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
 
         // 2. CHAT STREAM (Pure Vertical Alpha ShaderMask Dissolve)

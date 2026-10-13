@@ -2,6 +2,7 @@ import '../models/grocery_item.dart';
 import '../models/saved_recipe.dart';
 import '../models/pantry_item.dart';
 import '../models/chat_message.dart';
+import '../models/chat_session.dart';
 import '../models/meal_calendar_event.dart';
 
 import 'db/neon_connection.dart';
@@ -11,6 +12,7 @@ import 'db/user_db_service.dart';
 import 'db/chat_history_db_service.dart';
 import 'db/meal_calendar_db_service.dart';
 
+export '../models/chat_session.dart';
 export 'db/neon_connection.dart';
 export 'db/inventory_db_service.dart';
 export 'db/recipes_db_service.dart';
@@ -109,15 +111,29 @@ class NeonDbService {
   static Future<bool> cleanUserDataForFreshStart() =>
       UserDbService.cleanUserDataForFreshStart();
 
-  // Chat Memory
+  // Chat Memory & Multi-Session
   static Future<bool> saveChatMessage(ChatMessage message, {String? userId}) =>
       ChatHistoryDbService.saveChatMessage(message, userId: userId);
 
-  static Future<List<ChatMessage>> fetchChatHistory({String? userId, int limit = 40}) =>
-      ChatHistoryDbService.fetchChatHistory(userId: userId, limit: limit);
+  static Future<List<ChatSession>> fetchChatSessions({String? userId}) =>
+      ChatHistoryDbService.fetchChatSessions(userId: userId);
 
-  static Future<bool> clearChatHistory({String? userId}) =>
-      ChatHistoryDbService.clearChatHistory(userId: userId);
+  static Future<List<ChatMessage>> fetchChatHistory({
+    String? userId,
+    String? sessionId,
+    int limit = 60,
+  }) =>
+      ChatHistoryDbService.fetchChatHistory(
+        userId: userId,
+        sessionId: sessionId,
+        limit: limit,
+      );
+
+  static Future<bool> deleteChatSession(String sessionId, {String? userId}) =>
+      ChatHistoryDbService.deleteChatSession(sessionId, userId: userId);
+
+  static Future<bool> clearChatHistory({String? userId, String? sessionId}) =>
+      ChatHistoryDbService.clearChatHistory(userId: userId, sessionId: sessionId);
 
   static Future<List<String>> fetchRecentlyCookedDishes({int days = 30, String? userId}) =>
       ChatHistoryDbService.fetchRecentlyCookedDishes(days: days, userId: userId);
