@@ -213,11 +213,56 @@ class AuthService {
     String? fullName,
   }) async {
     final trimmedEmail = email.trim().toLowerCase();
-    if (trimmedEmail.isEmpty || password.isEmpty) {
+    final trimmedPassword = password.trim();
+    if (trimmedEmail.isEmpty || trimmedPassword.isEmpty) {
       return AuthResult(isSuccess: false, errorMessage: 'Please enter both email and password.');
     }
 
+    // Google Play Store / App Review Hardcoded Test Account
+    const allowedReviewerEmails = ['reviewer@lino.app', 'playreview@lino.app', 'test@lino.app'];
+    const allowedReviewerPasswords = ['password123', 'lino@2026', 'Reviewer123!'];
+
+    if (allowedReviewerEmails.contains(trimmedEmail) && allowedReviewerPasswords.contains(trimmedPassword)) {
+      const reviewerId = 'user_play_reviewer';
+      const reviewerName = 'Play Store Reviewer';
+      const reviewerHousehold = "Reviewer's Kitchen";
+
+      await saveSession(
+        id: reviewerId,
+        email: trimmedEmail,
+        fullName: reviewerName,
+        householdName: reviewerHousehold,
+        dietPreference: 'Veg',
+        householdSize: '2',
+        appliances: 'Gas Stove,Kadai / Pan',
+        exclusions: '',
+      );
+
+      // Best effort background self-healing in database
+      try {
+        await NeonDbService.registerUserInCloud(
+          id: reviewerId,
+          email: trimmedEmail,
+          fullName: reviewerName,
+          householdName: reviewerHousehold,
+          dietPreference: 'Veg',
+          householdSize: '2',
+          appliances: 'Gas Stove,Kadai / Pan',
+          exclusions: '',
+        );
+      } catch (_) {}
+
+      return AuthResult(
+        isSuccess: true,
+        isNewUser: false, // Bypasses onboarding; routes straight to home
+        email: trimmedEmail,
+        fullName: reviewerName,
+        householdName: reviewerHousehold,
+      );
+    }
+
     try {
+      /* PREVIOUS LOGIC DIRECTLY QUERIED DATABASE WITHOUT REVIEWER BYPASS - PRESERVED */
       final existingUser = await NeonDbService.fetchUserByEmail(trimmedEmail);
 
       if (existingUser != null) {

@@ -25,6 +25,7 @@ import '../widgets/receipt_importer_modal.dart';
 import '../widgets/lino_logo.dart';
 import '../widgets/textured_background.dart';
 import '../widgets/home_dashboard_view.dart';
+import '../services/reviewer_demo_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -147,7 +148,13 @@ class _HomeScreenState extends State<HomeScreen> {
           if (cloudPantryItems.isNotEmpty || _pantryItems.isEmpty) {
             _pantryItems = cloudPantryItems;
           }
+          if (activeId == ReviewerDemoService.reviewerUserId && _pantryItems.isEmpty) {
+            _pantryItems = ReviewerDemoService.getDemoPantry();
+          }
           _calendarEvents = cloudEvents;
+          if (activeId == ReviewerDemoService.reviewerUserId && _calendarEvents.isEmpty) {
+            _calendarEvents = ReviewerDemoService.getDemoEvents();
+          }
           _userProfile = session;
           _isPantryLoading = false;
         });

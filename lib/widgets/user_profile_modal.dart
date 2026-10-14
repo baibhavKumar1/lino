@@ -350,7 +350,10 @@ class _UserProfileModalState extends State<UserProfileModal> {
             height: 44,
             child: TactileTap(
               onTap: () async {
+                /* PREVIOUS ROOT URL - COMMENTED OUT AS ROOT IS NOW PROMOTIONAL SHOWCASE
                 final uri = Uri.parse('https://baibhavkumar1.github.io/lino/');
+                */
+                final uri = Uri.parse('https://baibhavkumar1.github.io/lino/privacy.html');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
